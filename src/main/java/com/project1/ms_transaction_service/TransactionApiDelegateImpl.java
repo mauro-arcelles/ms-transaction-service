@@ -21,12 +21,12 @@ public class TransactionApiDelegateImpl implements TransactionsApiDelegate {
     private TransactionService transactionService;
 
     @Override
-    public Mono<ResponseEntity<Flux<TransactionResponse>>> transactionsAccountIdGet(String accountId, ServerWebExchange exchange) {
-        return null;
+    public Mono<ResponseEntity<Flux<TransactionResponse>>> getTransactionsByAccount(String accountNumber, ServerWebExchange exchange) {
+        return Mono.just(ResponseEntity.ok().body(transactionService.getTransaccionsByAccountNumber(accountNumber)));
     }
 
     @Override
-    public Mono<ResponseEntity<TransactionResponse>> transactionsPost(@Valid Mono<TransactionRequest> transactionRequest, ServerWebExchange exchange) {
+    public Mono<ResponseEntity<TransactionResponse>> createTransaction(@Valid Mono<TransactionRequest> transactionRequest, ServerWebExchange exchange) {
         return transactionService.createTransaction(transactionRequest)
                 .map(response -> ResponseEntity.status(HttpStatus.CREATED).body(response));
 

@@ -10,6 +10,7 @@ paths:
   /transactions:
     post:
       summary: Create transaction
+      operationId: createTransaction
       requestBody:
         required: true
         content:
@@ -24,11 +25,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/TransactionResponse'
 
-  /transactions/{accountId}:
+  /transactions/by-account/{accountNumber}:
     get:
       summary: Get transactions by account
+      operationId: getTransactionsByAccount
       parameters:
-        - name: accountId
+        - name: accountNumber
           in: path
           required: true
           schema:

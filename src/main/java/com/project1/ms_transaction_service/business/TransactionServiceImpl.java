@@ -11,6 +11,7 @@ import com.project1.ms_transaction_service.repository.TransactionRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuples;
 
@@ -38,6 +39,12 @@ public class TransactionServiceImpl implements TransactionService {
                 .map(transactionMapper::getTransactionResponse)
                 .doOnSuccess(t -> log.info("Transaction created: {}", t.getId()))
                 .doOnError(e -> log.error("Error creating transaction", e));
+    }
+
+    @Override
+    public Flux<TransactionResponse> getTransaccionsByAccountNumber(String accountNumber) {
+        return transactionRepository.findAllByDestinationAccountNumber(accountNumber)
+                .map(transactionMapper::getTransactionResponse);
     }
 
     /**
