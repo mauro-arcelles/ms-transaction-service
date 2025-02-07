@@ -1,0 +1,135 @@
+openapi: 3.0.0
+info:
+  title: Transaction Service API
+  version: 1.0.0
+
+servers:
+  - url: http://localhost/api/v1
+
+paths:
+  /transactions:
+    post:
+      summary: Create transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionRequest'
+      responses:
+        '201':
+          description: Transaction created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+
+  /transactions/{accountId}:
+    get:
+      summary: Get transactions by account
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of transactions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TransactionResponse'
+components:
+  schemas:
+    TransactionRequest:
+      type: object
+      properties:
+        originAccountNumber:
+          type: string
+          minLength: 1
+          maxLength: 40
+        destinationAccountNumber:
+          type: string
+          minLength: 1
+          maxLength: 40
+        type:
+          type: string
+          minLength: 1
+        amount:
+          type: number
+        description:
+          type: string
+      required:
+        - destinationAccountNumber
+        - type
+        - amount
+
+    TransactionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        originAccountNumber:
+          type: string
+        destinationAccountNumber:
+          type: string
+        type:
+          type: string
+        amount:
+          type: number
+        date:
+          type: string
+          format: date-time
+        description:
+          type: string
+
+    AccountPatchRequest:
+      type: object
+      properties:
+        status:
+          type: string
+        balance:
+          type: number
+        monthlyMovements:
+          type: integer
+
+    AccountResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        accountNumber:
+          type: string
+        accountType:
+          type: string
+        balance:
+          type: number
+        customerId:
+          type: string
+        creationDate:
+          type: string
+          format: date-time
+        status:
+          type: string
+        monthlyMovements:
+          type: integer
+        maintenanceFee:
+          type: number
+          format: double
+        endDay:
+          type: string
+          format: date-time
+        availableDayForMovements:
+          type: string
+          format: date-time
+        maxMonthlyMovements:
+          type: integer
+
+    ResponseBase:
+      type: object
+      properties:
+        message:
+          type: string
