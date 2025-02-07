@@ -1,7 +1,6 @@
 package com.project1.ms_transaction_service.business;
 
 import com.project1.ms_transaction_service.exception.BadRequestException;
-import com.project1.ms_transaction_service.exception.MovementsLimitReachException;
 import com.project1.ms_transaction_service.model.AccountPatchRequest;
 import com.project1.ms_transaction_service.model.AccountResponse;
 import com.project1.ms_transaction_service.model.TransactionRequest;
@@ -48,9 +47,16 @@ public class TransactionServiceImpl implements TransactionService {
      */
     private Mono<TransactionRequest> validateAccount(TransactionRequest req) {
         return accountService.findAccountByAccountNumber(req.getDestinationAccountNumber())
-                .filter(account -> account.getMonthlyMovements() < account.getMaxMonthlyMovements())
-                .switchIfEmpty(Mono.error(new MovementsLimitReachException("Max monthly movements reached for account")))
-                .map(account -> req);
+                .flatMap(account -> {
+                    if (account.getMonthlyMovements() >= account.getMaxMonthlyMovements()) {
+                        return Mono.error(new BadRequestException("Max monthly movements reached for account"));
+                    }
+                    if (TransactionType.valueOf(req.getType()) == TransactionType.WITHDRAWAL
+                            && account.getBalance().compareTo(req.getAmount()) < 0) {
+                        return Mono.error(new BadRequestException("Insufficient funds"));
+                    }
+                    return Mono.just(req);
+                });
     }
 
     /**
@@ -81,13 +87,15 @@ public class TransactionServiceImpl implements TransactionService {
     /**
      * Save transaction and update account balance
      * @param transaction Transaction to save
-     * @param account Account to update
+     * @param accountResponse Account to update
      * @return Mono of Transaction
      */
-    private Mono<Transaction> saveTransactionAndUpdateAccount(Transaction transaction, AccountResponse account) {
+    private Mono<Transaction> saveTransactionAndUpdateAccount(Transaction transaction, AccountResponse accountResponse) {
         return transactionRepository.save(transaction)
-                .flatMap(t -> accountService.updateAccount(account.getId(), this.createAccountPatchRequest(t, account))
-                        .thenReturn(t));
+                .flatMap(t ->
+                        accountService.updateAccount(accountResponse.getId(), this.createAccountPatchRequest(t, accountResponse))
+                        .thenReturn(t)
+                );
     }
 
     /**
@@ -98,14 +106,14 @@ public class TransactionServiceImpl implements TransactionService {
      */
     private AccountPatchRequest createAccountPatchRequest(Transaction transaction, AccountResponse accountResponse) {
         AccountPatchRequest accountPatchRequest = new AccountPatchRequest();
-        BigDecimal newBalance = ar.getBalance();
+        BigDecimal newBalance = accountResponse.getBalance();
         TransactionType transactionType = TransactionType.valueOf(transaction.getType().toString());
         if (transactionType.equals(TransactionType.DEPOSIT)) {
             newBalance = newBalance.add(transaction.getAmount());
         } else {
             newBalance = newBalance.subtract(transaction.getAmount());
         }
-        Integer newMovements = ar.getMonthlyMovements() + 1;
+        Integer newMovements = accountResponse.getMonthlyMovements() + 1;
         accountPatchRequest.setBalance(newBalance);
         accountPatchRequest.setMonthlyMovements(newMovements);
         return accountPatchRequest;

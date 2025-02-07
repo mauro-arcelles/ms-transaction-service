@@ -1,6 +1,6 @@
 package com.project1.ms_transaction_service.business;
 
-import com.project1.ms_transaction_service.exception.AcccountWebClientException;
+import com.project1.ms_transaction_service.exception.AccountWebClientException;
 import com.project1.ms_transaction_service.model.AccountPatchRequest;
 import com.project1.ms_transaction_service.model.AccountResponse;
 import com.project1.ms_transaction_service.model.ResponseBase;
@@ -24,7 +24,7 @@ public class AccountServiceImpl implements AccountService {
                 .onStatus(HttpStatus::is4xxClientError, response ->
                         response.bodyToMono(ResponseBase.class)
                                 .flatMap(error ->
-                                        Mono.error(new AcccountWebClientException(error.getMessage()))
+                                        Mono.error(new AccountWebClientException(error.getMessage()))
                                 )
                 )
                 .bodyToMono(AccountResponse.class);
@@ -39,7 +39,7 @@ public class AccountServiceImpl implements AccountService {
                 .onStatus(HttpStatus::is4xxClientError, response ->
                         response.bodyToMono(ResponseBase.class)
                                 .flatMap(error ->
-                                        Mono.error(new AcccountWebClientException(error.getMessage()))
+                                        Mono.error(new AccountWebClientException(error.getMessage()))
                                 )
                 )
                 .bodyToMono(AccountResponse.class);

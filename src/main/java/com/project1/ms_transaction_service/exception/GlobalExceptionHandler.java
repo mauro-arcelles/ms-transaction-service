@@ -35,19 +35,11 @@ public class GlobalExceptionHandler {
                 .body("Internal Server Error"));
     }
 
-    @ExceptionHandler(AcccountWebClientException.class)
-    public Mono<ResponseEntity<ResponseBase>> handleAcccountWebClientException(Exception ex) {
+    @ExceptionHandler(AccountWebClientException.class)
+    public Mono<ResponseEntity<ResponseBase>> handleAccountWebClientException(Exception ex) {
         ResponseBase responseBase = new ResponseBase();
         responseBase.setMessage(ex.getMessage());
         return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(responseBase));
-    }
-
-    @ExceptionHandler(MovementsLimitReachException.class)
-    public Mono<ResponseEntity<ResponseBase>> handleMovementsLimitReachException(Exception ex) {
-        ResponseBase responseBase = new ResponseBase();
-        responseBase.setMessage(ex.getMessage());
-        return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(responseBase));
     }
 
