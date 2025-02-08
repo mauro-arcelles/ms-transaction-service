@@ -5,6 +5,7 @@ import com.project1.ms_transaction_service.model.AccountPatchRequest;
 import com.project1.ms_transaction_service.model.AccountResponse;
 import com.project1.ms_transaction_service.model.TransactionRequest;
 import com.project1.ms_transaction_service.model.TransactionResponse;
+import com.project1.ms_transaction_service.model.entity.AccountType;
 import com.project1.ms_transaction_service.model.entity.Transaction;
 import com.project1.ms_transaction_service.model.entity.TransactionType;
 import com.project1.ms_transaction_service.repository.TransactionRepository;
@@ -16,6 +17,7 @@ import reactor.core.publisher.Mono;
 import reactor.util.function.Tuples;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Service
 @Slf4j
@@ -49,15 +51,30 @@ public class TransactionServiceImpl implements TransactionService {
 
     /**
      * Validate if the account exists and if it has available monthly movements
+     *
      * @param req Transaction request
      * @return Mono of Transaction
      */
     private Mono<TransactionRequest> validateAccount(TransactionRequest req) {
         return accountService.findAccountByAccountNumber(req.getDestinationAccountNumber())
                 .flatMap(account -> {
-                    if (account.getMonthlyMovements() >= account.getMaxMonthlyMovements()) {
+                    AccountType accountType = AccountType.valueOf(account.getAccountType());
+                    // Validate if the account has reached the max monthly movements if its SAVINGS account
+                    if (account.getMonthlyMovements() >= account.getMaxMonthlyMovements()
+                            && accountType.equals(AccountType.SAVINGS)) {
                         return Mono.error(new BadRequestException("Max monthly movements reached for account"));
                     }
+                    // Validate if the account is FIXED_TERM, so it just can do movements once a month
+                    if (accountType.equals(AccountType.FIXED_TERM)) {
+                        if (account.getMonthlyMovements() >= account.getMaxMonthlyMovements()) {
+                            return Mono.error(new BadRequestException("Max monthly movements reached for account"));
+                        }
+                        LocalDate today = LocalDate.now();
+                        if (today.getDayOfMonth() != account.getAvailableDayForMovements()) {
+                            return Mono.error(new BadRequestException("Fixed-term accounts can only make transactions on "+ account.getAvailableDayForMovements() + "h of each month"));
+                        }
+                    }
+                    // Validate if the account has sufficient funds if transaction type is withdraw
                     if (TransactionType.valueOf(req.getType()) == TransactionType.WITHDRAWAL
                             && account.getBalance().compareTo(req.getAmount()) < 0) {
                         return Mono.error(new BadRequestException("Insufficient funds"));
@@ -68,6 +85,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     /**
      * Validate if the transaction type sent in request body is part of the enum one
+     *
      * @param req Transaction request
      * @return Mono of TransactionRequest
      */
@@ -82,6 +100,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     /**
      * Process transaction by finding account and creating transaction entity
+     *
      * @param req Transaction request
      * @return Mono of Transaction
      */
@@ -93,7 +112,8 @@ public class TransactionServiceImpl implements TransactionService {
 
     /**
      * Save transaction and update account balance
-     * @param transaction Transaction to save
+     *
+     * @param transaction     Transaction to save
      * @param accountResponse Account to update
      * @return Mono of Transaction
      */
@@ -101,13 +121,14 @@ public class TransactionServiceImpl implements TransactionService {
         return transactionRepository.save(transaction)
                 .flatMap(t ->
                         accountService.updateAccount(accountResponse.getId(), this.createAccountPatchRequest(t, accountResponse))
-                        .thenReturn(t)
+                                .thenReturn(t)
                 );
     }
 
     /**
      * Create the object request to be sent to update the account
-     * @param transaction Transaction to save
+     *
+     * @param transaction     Transaction to save
      * @param accountResponse Account to update
      * @return Request Object mapped of update
      */

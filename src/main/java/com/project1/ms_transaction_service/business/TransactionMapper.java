@@ -19,7 +19,7 @@ public class TransactionMapper {
         response.setDestinationAccountNumber(transaction.getDestinationAccountNumber());
         response.setType(transaction.getType().toString());
         response.setAmount(transaction.getAmount());
-        response.setDate(transaction.getDate().atOffset(ZoneOffset.UTC));
+        response.setDate(transaction.getDate());
         response.setDescription(transaction.getDescription());
         return response;
     }
