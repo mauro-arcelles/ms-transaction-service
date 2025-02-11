@@ -1,4 +1,4 @@
-package com.project1.ms_transaction_service.business;
+package com.project1.ms_transaction_service.business.adapter;
 
 import com.project1.ms_transaction_service.exception.AccountWebClientException;
 import com.project1.ms_transaction_service.model.*;

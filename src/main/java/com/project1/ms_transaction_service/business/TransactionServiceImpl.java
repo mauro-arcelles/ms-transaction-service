@@ -1,5 +1,7 @@
 package com.project1.ms_transaction_service.business;
 
+import com.project1.ms_transaction_service.business.adapter.AccountService;
+import com.project1.ms_transaction_service.business.adapter.CreditCardService;
 import com.project1.ms_transaction_service.exception.BadRequestException;
 import com.project1.ms_transaction_service.exception.CreditCardCustomerMissmatchException;
 import com.project1.ms_transaction_service.model.*;
@@ -32,13 +34,13 @@ public class TransactionServiceImpl implements TransactionService {
     private AccountTransactionRepository accountTransactionRepository;
 
     @Autowired
-    private AccountService accountService;
-
-    @Autowired
     private CreditCardTransactionRepository creditCardTransactionRepository;
 
     @Autowired
     private CreditCardService creditCardService;
+
+    @Autowired
+    private AccountService accountService;
 
     @Override
     public Mono<AccountTransactionResponse> createAccountTransaction(Mono<AccountTransactionRequest> request) {
@@ -52,7 +54,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public Flux<AccountTransactionResponse> getTransaccionsByAccountNumber(String accountNumber) {
+    public Flux<AccountTransactionResponse> getTransactionsByAccountNumber(String accountNumber) {
         return accountService.findAccountByAccountNumber(accountNumber)
                 .flatMapMany(account ->
                         accountTransactionRepository.findAllByDestinationAccountNumber(accountNumber)

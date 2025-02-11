@@ -22,7 +22,7 @@ public class TransactionApiDelegateImpl implements TransactionsApiDelegate {
 
     @Override
     public Mono<ResponseEntity<Flux<AccountTransactionResponse>>> getTransactionsByAccount(String accountNumber, ServerWebExchange exchange) {
-        return Mono.just(ResponseEntity.ok().body(transactionService.getTransaccionsByAccountNumber(accountNumber)));
+        return Mono.just(ResponseEntity.ok().body(transactionService.getTransactionsByAccountNumber(accountNumber)));
     }
 
     @Override
