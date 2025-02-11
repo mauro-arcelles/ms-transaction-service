@@ -51,13 +51,13 @@ public class GlobalExceptionHandler {
                 .body(responseBase));
     }
 
-//    @ExceptionHandler(InvalidAccountTypeException.class)
-//    public Mono<ResponseEntity<ResponseBase>> handleInvalidAccountTypeException(Exception ex) {
-//        ResponseBase responseBase = new ResponseBase();
-//        responseBase.setMessage(ex.getMessage());
-//        return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST)
-//                .body(responseBase));
-//    }
+    @ExceptionHandler(CreditCardCustomerMissmatchException.class)
+    public Mono<ResponseEntity<ResponseBase>> handleCreditCardCustomerMissmatchException(Exception ex) {
+        ResponseBase responseBase = new ResponseBase();
+        responseBase.setMessage(ex.getMessage());
+        return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(responseBase));
+    }
 //
 //    @ExceptionHandler(AccountCreationException.class)
 //    public Mono<ResponseEntity<ResponseBase>> handleAccountCreationException(Exception ex) {

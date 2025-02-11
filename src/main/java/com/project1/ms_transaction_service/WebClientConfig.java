@@ -7,8 +7,13 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Configuration
 public class WebClientConfig {
 
-    @Bean
+    @Bean("accountWebClient")
     public WebClient accountClient() {
         return WebClient.create("http://localhost:8091/api/v1");
+    }
+
+    @Bean("creditCardWebClient")
+    public WebClient creditCardClient() {
+        return WebClient.create("http://localhost:8093/api/v1");
     }
 }

@@ -1,9 +1,7 @@
 package com.project1.ms_transaction_service.business;
 
 import com.project1.ms_transaction_service.exception.AccountWebClientException;
-import com.project1.ms_transaction_service.model.AccountPatchRequest;
-import com.project1.ms_transaction_service.model.AccountResponse;
-import com.project1.ms_transaction_service.model.ResponseBase;
+import com.project1.ms_transaction_service.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
@@ -12,16 +10,16 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 @Service
-public class AccountServiceImpl implements AccountService {
+public class CreditCardServiceImpl implements CreditCardService {
 
     @Autowired
-    @Qualifier("accountWebClient")
-    private WebClient accountWebClient;
+    @Qualifier("creditCardWebClient")
+    private WebClient creditCardWebClient;
 
     @Override
-    public Mono<AccountResponse> findAccountByAccountNumber(String accountNumber) {
-        return accountWebClient.get()
-                .uri("/accounts/{accountNumber}", accountNumber)
+    public Mono<CreditCardResponse> getCreditCardByCardNumber(String cardNumber) {
+        return creditCardWebClient.get()
+                .uri("/credits/credit-card/by-card-number/{cardNumber}", cardNumber)
                 .retrieve()
                 .onStatus(HttpStatus::is4xxClientError, response ->
                         response.bodyToMono(ResponseBase.class)
@@ -29,14 +27,14 @@ public class AccountServiceImpl implements AccountService {
                                         Mono.error(new AccountWebClientException(error.getMessage()))
                                 )
                 )
-                .bodyToMono(AccountResponse.class);
+                .bodyToMono(CreditCardResponse.class);
     }
 
     @Override
-    public Mono<AccountResponse> updateAccount(String id, AccountPatchRequest request) {
-        return accountWebClient.patch()
-                .uri("/accounts/{id}", id)
-                .body(Mono.just(request), AccountPatchRequest.class)
+    public Mono<CreditCardResponse> updateCreditCard(String id, CreditCardPatchRequest request) {
+        return creditCardWebClient.patch()
+                .uri("/credits/credit-card/{id}", id)
+                .body(Mono.just(request), CreditCardPatchRequest.class)
                 .retrieve()
                 .onStatus(HttpStatus::is4xxClientError, response ->
                         response.bodyToMono(ResponseBase.class)
@@ -44,6 +42,7 @@ public class AccountServiceImpl implements AccountService {
                                         Mono.error(new AccountWebClientException(error.getMessage()))
                                 )
                 )
-                .bodyToMono(AccountResponse.class);
+                .bodyToMono(CreditCardResponse.class);
     }
+
 }

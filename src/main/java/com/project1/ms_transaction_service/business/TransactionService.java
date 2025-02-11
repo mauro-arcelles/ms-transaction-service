@@ -1,11 +1,14 @@
 package com.project1.ms_transaction_service.business;
 
-import com.project1.ms_transaction_service.model.TransactionRequest;
-import com.project1.ms_transaction_service.model.TransactionResponse;
+import com.project1.ms_transaction_service.model.AccountTransactionRequest;
+import com.project1.ms_transaction_service.model.AccountTransactionResponse;
+import com.project1.ms_transaction_service.model.CreditCardTransactionRequest;
+import com.project1.ms_transaction_service.model.CreditCardTransactionResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface TransactionService {
-    Mono<TransactionResponse> createTransaction(Mono<TransactionRequest> request);
-    Flux<TransactionResponse> getTransaccionsByAccountNumber(String accountNumber);
+    Mono<AccountTransactionResponse> createAccountTransaction(Mono<AccountTransactionRequest> request);
+    Flux<AccountTransactionResponse> getTransaccionsByAccountNumber(String accountNumber);
+    Mono<CreditCardTransactionResponse> createCreditCardTransaction(Mono<CreditCardTransactionRequest> request);
 }

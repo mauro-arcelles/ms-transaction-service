@@ -2,8 +2,10 @@ package com.project1.ms_transaction_service;
 
 import com.project1.ms_transaction_service.api.TransactionsApiDelegate;
 import com.project1.ms_transaction_service.business.TransactionService;
-import com.project1.ms_transaction_service.model.TransactionRequest;
-import com.project1.ms_transaction_service.model.TransactionResponse;
+import com.project1.ms_transaction_service.model.AccountTransactionRequest;
+import com.project1.ms_transaction_service.model.AccountTransactionResponse;
+import com.project1.ms_transaction_service.model.CreditCardTransactionRequest;
+import com.project1.ms_transaction_service.model.CreditCardTransactionResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,8 +14,6 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import javax.validation.Valid;
-
 @Component
 public class TransactionApiDelegateImpl implements TransactionsApiDelegate {
 
@@ -21,14 +21,18 @@ public class TransactionApiDelegateImpl implements TransactionsApiDelegate {
     private TransactionService transactionService;
 
     @Override
-    public Mono<ResponseEntity<Flux<TransactionResponse>>> getTransactionsByAccount(String accountNumber, ServerWebExchange exchange) {
+    public Mono<ResponseEntity<Flux<AccountTransactionResponse>>> getTransactionsByAccount(String accountNumber, ServerWebExchange exchange) {
         return Mono.just(ResponseEntity.ok().body(transactionService.getTransaccionsByAccountNumber(accountNumber)));
     }
 
     @Override
-    public Mono<ResponseEntity<TransactionResponse>> createTransaction(@Valid Mono<TransactionRequest> transactionRequest, ServerWebExchange exchange) {
-        return transactionService.createTransaction(transactionRequest)
+    public Mono<ResponseEntity<AccountTransactionResponse>> createTransactionAccounts(Mono<AccountTransactionRequest> accountTransactionRequest, ServerWebExchange exchange) {
+        return transactionService.createAccountTransaction(accountTransactionRequest)
                 .map(response -> ResponseEntity.status(HttpStatus.CREATED).body(response));
+    }
 
+    @Override
+    public Mono<ResponseEntity<CreditCardTransactionResponse>> createTransactionCreditCard(Mono<CreditCardTransactionRequest> creditCardTransactionRequest, ServerWebExchange exchange) {
+        return transactionService.createCreditCardTransaction(creditCardTransactionRequest).map(ResponseEntity::ok);
     }
 }

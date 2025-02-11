@@ -7,25 +7,43 @@ servers:
   - url: http://localhost/api/v1
 
 paths:
-  /transactions:
+  /transactions/account:
     post:
-      summary: Create transaction
-      operationId: createTransaction
+      summary: Create transaction for accounts
+      operationId: createTransactionAccounts
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TransactionRequest'
+              $ref: '#/components/schemas/AccountTransactionRequest'
       responses:
         '201':
-          description: Transaction created
+          description: Account transaction created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TransactionResponse'
+                $ref: '#/components/schemas/AccountTransactionResponse'
 
-  /transactions/by-account/{accountNumber}:
+  /transactions/credit-card:
+    post:
+      summary: Create transaction for credit cards
+      operationId: createTransactionCreditCard
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreditCardTransactionRequest'
+      responses:
+        '201':
+          description: Credit card transaction created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditCardTransactionResponse'
+
+  /transactions/account/by-account/{accountNumber}:
     get:
       summary: Get transactions by account
       operationId: getTransactionsByAccount
@@ -43,10 +61,10 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/TransactionResponse'
+                  $ref: '#/components/schemas/AccountTransactionResponse'
 components:
   schemas:
-    TransactionRequest:
+    AccountTransactionRequest:
       type: object
       properties:
         originAccountNumber:
@@ -69,7 +87,35 @@ components:
         - type
         - amount
 
-    TransactionResponse:
+    CreditCardTransactionRequest:
+      type: object
+      properties:
+        creditCard:
+          type: string
+        customerId:
+          type: string
+        amount:
+          type: number
+        description:
+          type: string
+      required:
+        - creditCard
+        - customerId
+        - amount
+
+    CreditCardTransactionResponse:
+      type: object
+      properties:
+        creditCard:
+          type: string
+        customerId:
+          type: string
+        amount:
+          type: number
+        description:
+          type: string
+
+    AccountTransactionResponse:
       type: object
       properties:
         id:
@@ -97,6 +143,14 @@ components:
           type: number
         monthlyMovements:
           type: integer
+
+    CreditCardPatchRequest:
+      type: object
+      properties:
+        usedAmount:
+          type: number
+        creditLimit:
+          type: number
 
     AccountResponse:
       type: object
@@ -128,6 +182,22 @@ components:
           type: integer
         maxMonthlyMovements:
           type: integer
+
+    CreditCardResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        customerId:
+          type: string
+        creditLimit:
+          type: number
+        cardNumber:
+          type: string
+        usedAmount:
+          type: number
+        creditCardStatus:
+          type: string
 
     ResponseBase:
       type: object
