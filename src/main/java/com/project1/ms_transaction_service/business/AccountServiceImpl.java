@@ -21,7 +21,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public Mono<AccountResponse> findAccountByAccountNumber(String accountNumber) {
         return accountWebClient.get()
-                .uri("/accounts/{accountNumber}", accountNumber)
+                .uri("/accounts/by-account-number/{accountNumber}", accountNumber)
                 .retrieve()
                 .onStatus(HttpStatus::is4xxClientError, response ->
                         response.bodyToMono(ResponseBase.class)
