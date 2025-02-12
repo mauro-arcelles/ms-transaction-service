@@ -19,6 +19,7 @@ import reactor.util.function.Tuples;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -135,27 +136,39 @@ public class TransactionServiceImpl implements TransactionService {
     private Mono<AccountTransactionRequest> validateAccount(AccountTransactionRequest req) {
         return accountService.findAccountByAccountNumber(req.getDestinationAccountNumber())
                 .flatMap(account -> {
-                    AccountType accountType = AccountType.valueOf(account.getAccountType());
-                    // Validate if the account has reached the max monthly movements if its SAVINGS account
-                    if (account.getMonthlyMovements() >= account.getMaxMonthlyMovements()
-                            && accountType.equals(AccountType.SAVINGS)) {
-                        return Mono.error(new BadRequestException("Max monthly movements reached for account"));
+                    if (!AccountStatus.ACTIVE.toString().equals(account.getStatus())) {
+                        return Mono.error(new BadRequestException("ACCOUNT has " + account.getStatus() + " status"));
                     }
-                    // Validate if the account is FIXED_TERM, so it just can do movements once a month
-                    if (accountType.equals(AccountType.FIXED_TERM)) {
-                        if (account.getMonthlyMovements() >= account.getMaxMonthlyMovements()) {
+
+                    AccountType accountType = AccountType.valueOf(account.getAccountType());
+                    Integer monthlyMovements = Optional.ofNullable(account.getMonthlyMovements()).orElse(0);
+                    Integer maxMonthlyMovements = Optional.ofNullable(account.getMaxMonthlyMovements()).orElse(0);
+
+                    if (accountType.equals(AccountType.SAVINGS)) {
+                        if (monthlyMovements >= maxMonthlyMovements) {
                             return Mono.error(new BadRequestException("Max monthly movements reached for account"));
                         }
+                    }
+
+                    if (accountType.equals(AccountType.FIXED_TERM)) {
+                        if (monthlyMovements >= maxMonthlyMovements) {
+                            return Mono.error(new BadRequestException("Max monthly movements reached for account"));
+                        }
+
+                        Integer availableDay = Optional.ofNullable(account.getAvailableDayForMovements()).orElse(1);
                         LocalDate today = LocalDate.now();
-                        if (today.getDayOfMonth() != account.getAvailableDayForMovements()) {
-                            return Mono.error(new BadRequestException("Fixed-term accounts can only make transactions on " + account.getAvailableDayForMovements() + "h of each month"));
+                        if (today.getDayOfMonth() != availableDay) {
+                            return Mono.error(new BadRequestException("Fixed-term accounts can only make transactions on " + availableDay + "th of each month"));
                         }
                     }
-                    // Validate if the account has sufficient funds if transaction type is withdraw
-                    if (AccountTransactionType.valueOf(req.getType()) == AccountTransactionType.WITHDRAWAL
-                            && account.getBalance().compareTo(req.getAmount()) < 0) {
-                        return Mono.error(new BadRequestException("Insufficient funds"));
+
+                    if (AccountTransactionType.WITHDRAWAL.toString().equals(req.getType())) {
+                        BigDecimal balance = Optional.ofNullable(account.getBalance()).orElse(BigDecimal.ZERO);
+                        if (balance.compareTo(req.getAmount()) < 0) {
+                            return Mono.error(new BadRequestException("Insufficient funds"));
+                        }
                     }
+
                     return Mono.just(req);
                 });
     }
