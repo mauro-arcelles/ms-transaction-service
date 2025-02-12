@@ -21,7 +21,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public Mono<AccountResponse> findAccountByAccountNumber(String accountNumber) {
         return accountWebClient.get()
-                .uri("/accounts/by-account-number/{accountNumber}", accountNumber)
+                .uri("/by-account-number/{accountNumber}", accountNumber)
                 .retrieve()
                 .onStatus(HttpStatus::is4xxClientError, response ->
                         response.bodyToMono(ResponseBase.class)
@@ -35,7 +35,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public Mono<AccountResponse> updateAccount(String id, AccountPatchRequest request) {
         return accountWebClient.patch()
-                .uri("/accounts/{id}", id)
+                .uri("/{id}", id)
                 .body(Mono.just(request), AccountPatchRequest.class)
                 .retrieve()
                 .onStatus(HttpStatus::is4xxClientError, response ->

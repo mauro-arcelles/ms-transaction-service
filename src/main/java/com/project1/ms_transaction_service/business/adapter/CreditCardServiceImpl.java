@@ -19,7 +19,7 @@ public class CreditCardServiceImpl implements CreditCardService {
     @Override
     public Mono<CreditCardResponse> getCreditCardByCardNumber(String cardNumber) {
         return creditCardWebClient.get()
-                .uri("/credits/credit-card/by-card-number/{cardNumber}", cardNumber)
+                .uri("/credit-card/by-card-number/{cardNumber}", cardNumber)
                 .retrieve()
                 .onStatus(HttpStatus::is4xxClientError, response ->
                         response.bodyToMono(ResponseBase.class)
@@ -33,7 +33,7 @@ public class CreditCardServiceImpl implements CreditCardService {
     @Override
     public Mono<CreditCardResponse> updateCreditCard(String id, CreditCardPatchRequest request) {
         return creditCardWebClient.patch()
-                .uri("/credits/credit-card/{id}", id)
+                .uri("/credit-card/{id}", id)
                 .body(Mono.just(request), CreditCardPatchRequest.class)
                 .retrieve()
                 .onStatus(HttpStatus::is4xxClientError, response ->

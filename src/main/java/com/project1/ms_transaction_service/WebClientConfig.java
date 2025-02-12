@@ -8,10 +8,10 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Configuration
 public class WebClientConfig {
 
-    @Value("${account.service.baseUrl}")
+    @Value("${application.config.account-service-url}")
     private String accountServiceBaseUrl;
 
-    @Value("${credit.service.baseUrl}")
+    @Value("${application.config.credit-service-url}")
     private String creditServiceBaseUrl;
 
     @Bean("accountWebClient")
