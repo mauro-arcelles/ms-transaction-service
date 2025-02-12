@@ -14,6 +14,9 @@ public class WebClientConfig {
     @Value("${application.config.credit-service-url}")
     private String creditServiceBaseUrl;
 
+    @Value("${application.config.customer-service-url}")
+    private String customerServiceBaseUrl;
+
     @Bean("accountWebClient")
     public WebClient accountClient() {
         return WebClient.builder()
@@ -25,6 +28,13 @@ public class WebClientConfig {
     public WebClient creditCardClient() {
         return WebClient.builder()
                 .baseUrl(creditServiceBaseUrl)
+                .build();
+    }
+
+    @Bean("customerServiceWebClient")
+    public WebClient customerServiceClient() {
+        return WebClient.builder()
+                .baseUrl(customerServiceBaseUrl)
                 .build();
     }
 }

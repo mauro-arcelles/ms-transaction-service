@@ -2,6 +2,7 @@ package com.project1.ms_transaction_service.business;
 
 import com.project1.ms_transaction_service.business.adapter.AccountService;
 import com.project1.ms_transaction_service.business.adapter.CreditCardService;
+import com.project1.ms_transaction_service.business.adapter.CustomerService;
 import com.project1.ms_transaction_service.exception.BadRequestException;
 import com.project1.ms_transaction_service.exception.CreditCardCustomerMissmatchException;
 import com.project1.ms_transaction_service.model.*;
@@ -19,6 +20,7 @@ import reactor.util.function.Tuples;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -43,6 +45,9 @@ public class TransactionServiceImpl implements TransactionService {
     @Autowired
     private AccountService accountService;
 
+    @Autowired
+    private CustomerService customerService;
+
     @Override
     public Mono<AccountTransactionResponse> createAccountTransaction(Mono<AccountTransactionRequest> request) {
         return request
@@ -56,7 +61,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public Flux<AccountTransactionResponse> getTransactionsByAccountNumber(String accountNumber) {
-        return accountService.findAccountByAccountNumber(accountNumber)
+        return accountService.getAccountByAccountNumber(accountNumber)
                 .flatMapMany(account ->
                         accountTransactionRepository.findAllByDestinationAccountNumber(accountNumber)
                                 .map(transactionMapper::getAccountTransactionResponse)
@@ -72,8 +77,43 @@ public class TransactionServiceImpl implements TransactionService {
                 .map(transactionMapper::getCreditCardTransactionResponse);
     }
 
+    @Override
+    public Mono<CustomerProductsResponse> getAllCustomerProductsByDni(String dni) {
+        return customerService.getCustomerByDni(dni)
+                .flatMap(customerResponse ->
+                        Mono.zip(
+                                accountService.getAccountsByCustomerId(customerResponse.getId()).collectList(),
+                                creditCardService.getCreditCardsByCustomerId(customerResponse.getId()).collectList()
+                        ).map(tuple ->
+                                transactionMapper.getCustomerProductsResponse(
+                                        customerResponse,
+                                        tuple.getT1(),
+                                        tuple.getT2()
+                                )
+                        )
+                );
+    }
+
+    @Override
+    public Mono<CustomerProductsResponse> getAllCustomerProductsByRuc(String ruc) {
+        return customerService.getCustomerByRuc(ruc)
+                .flatMap(customerResponse ->
+                        Mono.zip(
+                                accountService.getAccountsByCustomerId(customerResponse.getId()).collectList(),
+                                creditCardService.getCreditCardsByCustomerId(customerResponse.getId()).collectList()
+                        ).map(tuple ->
+                                transactionMapper.getCustomerProductsResponse(
+                                        customerResponse,
+                                        tuple.getT1(),
+                                        tuple.getT2()
+                                )
+                        )
+                );
+    }
+
     /**
      * Validates that the credit card exists and belongs to the customer
+     *
      * @param request The transaction request containing card and customer details
      * @return Tuple of request and card response if valid
      * @throws CreditCardCustomerMissmatchException if card doesn't belong to customer
@@ -87,6 +127,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     /**
      * Validates if the transaction amount is within the available credit limit
+     *
      * @param tuple Contains the transaction request and card details
      * @return The input tuple if validation passes
      * @throws BadRequestException if insufficient funds available
@@ -107,6 +148,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     /**
      * Saves the transaction and updates the card's used amount
+     *
      * @param tuple Contains the transaction request and card details
      * @return The saved credit card transaction
      */
@@ -134,7 +176,7 @@ public class TransactionServiceImpl implements TransactionService {
      * @return Mono of Transaction
      */
     private Mono<AccountTransactionRequest> validateAccount(AccountTransactionRequest req) {
-        return accountService.findAccountByAccountNumber(req.getDestinationAccountNumber())
+        return accountService.getAccountByAccountNumber(req.getDestinationAccountNumber())
                 .flatMap(account -> {
                     if (!AccountStatus.ACTIVE.toString().equals(account.getStatus())) {
                         return Mono.error(new BadRequestException("ACCOUNT has " + account.getStatus() + " status"));
@@ -195,7 +237,7 @@ public class TransactionServiceImpl implements TransactionService {
      * @return Mono of Transaction
      */
     private Mono<Transaction> processTransaction(AccountTransactionRequest req) {
-        return accountService.findAccountByAccountNumber(req.getDestinationAccountNumber())
+        return accountService.getAccountByAccountNumber(req.getDestinationAccountNumber())
                 .map(account -> Tuples.of(transactionMapper.getAccountTransactionEntity(req), account))
                 .flatMap(tuple -> this.saveTransactionAndUpdateAccount(tuple.getT1(), tuple.getT2()));
     }

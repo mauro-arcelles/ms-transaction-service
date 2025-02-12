@@ -1,16 +1,15 @@
 package com.project1.ms_transaction_service.business;
 
-import com.project1.ms_transaction_service.model.AccountTransactionRequest;
-import com.project1.ms_transaction_service.model.AccountTransactionResponse;
-import com.project1.ms_transaction_service.model.CreditCardTransactionRequest;
-import com.project1.ms_transaction_service.model.CreditCardTransactionResponse;
+import com.project1.ms_transaction_service.model.*;
 import com.project1.ms_transaction_service.model.entity.AccountTransaction;
 import com.project1.ms_transaction_service.model.entity.CreditCardTransaction;
 import com.project1.ms_transaction_service.model.entity.Transaction;
 import com.project1.ms_transaction_service.model.entity.AccountTransactionType;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Flux;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Component
 public class TransactionMapper {
@@ -56,6 +55,16 @@ public class TransactionMapper {
         creditCardTransaction.setDescription(request.getDescription());
         creditCardTransaction.setCustomerId(request.getCustomerId());
         return creditCardTransaction;
+    }
+
+    public CustomerProductsResponse getCustomerProductsResponse(CustomerResponse customer,
+                                                                List<AccountResponse> accounts,
+                                                                List<CreditCardResponse> creditCards) {
+        CustomerProductsResponse customerProductsResponse = new CustomerProductsResponse();
+        customerProductsResponse.setCustomer(customer);
+        customerProductsResponse.setAccounts(accounts);
+        customerProductsResponse.setCreditCards(creditCards);
+        return customerProductsResponse;
     }
 
 }

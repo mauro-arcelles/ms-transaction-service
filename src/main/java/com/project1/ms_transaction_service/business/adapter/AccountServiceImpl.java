@@ -1,6 +1,6 @@
 package com.project1.ms_transaction_service.business.adapter;
 
-import com.project1.ms_transaction_service.exception.AccountWebClientException;
+import com.project1.ms_transaction_service.exception.BadRequestException;
 import com.project1.ms_transaction_service.model.AccountPatchRequest;
 import com.project1.ms_transaction_service.model.AccountResponse;
 import com.project1.ms_transaction_service.model.ResponseBase;
@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
@@ -19,14 +20,14 @@ public class AccountServiceImpl implements AccountService {
     private WebClient accountWebClient;
 
     @Override
-    public Mono<AccountResponse> findAccountByAccountNumber(String accountNumber) {
+    public Mono<AccountResponse> getAccountByAccountNumber(String accountNumber) {
         return accountWebClient.get()
                 .uri("/by-account-number/{accountNumber}", accountNumber)
                 .retrieve()
                 .onStatus(HttpStatus::is4xxClientError, response ->
                         response.bodyToMono(ResponseBase.class)
                                 .flatMap(error ->
-                                        Mono.error(new AccountWebClientException(error.getMessage()))
+                                        Mono.error(new BadRequestException(error.getMessage()))
                                 )
                 )
                 .bodyToMono(AccountResponse.class);
@@ -41,9 +42,23 @@ public class AccountServiceImpl implements AccountService {
                 .onStatus(HttpStatus::is4xxClientError, response ->
                         response.bodyToMono(ResponseBase.class)
                                 .flatMap(error ->
-                                        Mono.error(new AccountWebClientException(error.getMessage()))
+                                        Mono.error(new BadRequestException(error.getMessage()))
                                 )
                 )
                 .bodyToMono(AccountResponse.class);
+    }
+
+    @Override
+    public Flux<AccountResponse> getAccountsByCustomerId(String customerId) {
+        return accountWebClient.get()
+                .uri("/by-customer/{customerId}", customerId)
+                .retrieve()
+                .onStatus(HttpStatus::is4xxClientError, response ->
+                        response.bodyToMono(ResponseBase.class)
+                                .flatMap(error ->
+                                        Mono.error(new BadRequestException(error.getMessage()))
+                                )
+                )
+                .bodyToFlux(AccountResponse.class);
     }
 }

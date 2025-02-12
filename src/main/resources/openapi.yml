@@ -62,8 +62,59 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/AccountTransactionResponse'
+
+  /transactions/customer-products/dni/{dni}:
+    get:
+      summary: Get all the customer bank products
+      operationId: getAllCustomerProductsByDni
+      parameters:
+        - name: dni
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of all customer products
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerProductsResponse'
+
+  /transactions/customer-products/ruc/{ruc}:
+    get:
+      summary: Get all the customer bank products
+      operationId: getAllCustomerProductsByRuc
+      parameters:
+        - name: ruc
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of all customer products
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerProductsResponse'
+
 components:
   schemas:
+    CustomerProductsResponse:
+      type: object
+      properties:
+        customer:
+          $ref: "#/components/schemas/CustomerResponse"
+        accounts:
+          type: array
+          items:
+            $ref: "#/components/schemas/AccountResponse"
+        creditCards:
+          type: array
+          items:
+            $ref: "#/components/schemas/CreditCardResponse"
+
     AccountTransactionRequest:
       type: object
       properties:
@@ -197,6 +248,26 @@ components:
         usedAmount:
           type: number
         creditCardStatus:
+          type: string
+
+    CustomerResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        documentNumber:
+          type: string
+        ruc:
+          type: string
+        businessName:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        type:
+          type: string
+        status:
           type: string
 
     ResponseBase:

@@ -2,10 +2,7 @@ package com.project1.ms_transaction_service;
 
 import com.project1.ms_transaction_service.api.TransactionsApiDelegate;
 import com.project1.ms_transaction_service.business.TransactionService;
-import com.project1.ms_transaction_service.model.AccountTransactionRequest;
-import com.project1.ms_transaction_service.model.AccountTransactionResponse;
-import com.project1.ms_transaction_service.model.CreditCardTransactionRequest;
-import com.project1.ms_transaction_service.model.CreditCardTransactionResponse;
+import com.project1.ms_transaction_service.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,5 +31,15 @@ public class TransactionApiDelegateImpl implements TransactionsApiDelegate {
     @Override
     public Mono<ResponseEntity<CreditCardTransactionResponse>> createTransactionCreditCard(Mono<CreditCardTransactionRequest> creditCardTransactionRequest, ServerWebExchange exchange) {
         return transactionService.createCreditCardTransaction(creditCardTransactionRequest).map(ResponseEntity::ok);
+    }
+
+    @Override
+    public Mono<ResponseEntity<CustomerProductsResponse>> getAllCustomerProductsByDni(String dni, ServerWebExchange exchange) {
+        return transactionService.getAllCustomerProductsByDni(dni).map(ResponseEntity::ok);
+    }
+
+    @Override
+    public Mono<ResponseEntity<CustomerProductsResponse>> getAllCustomerProductsByRuc(String ruc, ServerWebExchange exchange) {
+        return transactionService.getAllCustomerProductsByRuc(ruc).map(ResponseEntity::ok);
     }
 }
