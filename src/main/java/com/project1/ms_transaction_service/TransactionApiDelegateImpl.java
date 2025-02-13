@@ -1,6 +1,9 @@
 package com.project1.ms_transaction_service;
 
 import com.project1.ms_transaction_service.api.TransactionsApiDelegate;
+import com.project1.ms_transaction_service.business.AccountTransactionService;
+import com.project1.ms_transaction_service.business.CreditCardTransactionService;
+import com.project1.ms_transaction_service.business.CreditTransactionService;
 import com.project1.ms_transaction_service.business.TransactionService;
 import com.project1.ms_transaction_service.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,20 +20,29 @@ public class TransactionApiDelegateImpl implements TransactionsApiDelegate {
     @Autowired
     private TransactionService transactionService;
 
+    @Autowired
+    private AccountTransactionService accountTransactionService;
+
+    @Autowired
+    private CreditCardTransactionService creditCardTransactionService;
+
+    @Autowired
+    private CreditTransactionService creditTransactionService;
+
     @Override
     public Mono<ResponseEntity<Flux<AccountTransactionResponse>>> getTransactionsByAccount(String accountNumber, ServerWebExchange exchange) {
-        return Mono.just(ResponseEntity.ok().body(transactionService.getTransactionsByAccountNumber(accountNumber)));
+        return Mono.just(ResponseEntity.ok().body(accountTransactionService.getTransactionsByAccountNumber(accountNumber)));
     }
 
     @Override
     public Mono<ResponseEntity<AccountTransactionResponse>> createTransactionAccounts(Mono<AccountTransactionRequest> accountTransactionRequest, ServerWebExchange exchange) {
-        return transactionService.createAccountTransaction(accountTransactionRequest)
+        return accountTransactionService.createAccountTransaction(accountTransactionRequest)
                 .map(response -> ResponseEntity.status(HttpStatus.CREATED).body(response));
     }
 
     @Override
     public Mono<ResponseEntity<CreditCardUsageTransactionResponse>> createCreditCardUsageTransaction(Mono<CreditCardUsageTransactionRequest> creditCardTransactionRequest, ServerWebExchange exchange) {
-        return transactionService.createCreditCardUsageTransaction(creditCardTransactionRequest).map(ResponseEntity::ok);
+        return creditCardTransactionService.createCreditCardUsageTransaction(creditCardTransactionRequest).map(ResponseEntity::ok);
     }
 
     @Override
@@ -45,6 +57,6 @@ public class TransactionApiDelegateImpl implements TransactionsApiDelegate {
 
     @Override
     public Mono<ResponseEntity<CreditPaymentTransactionResponse>> createCreditPaymentTransaction(Mono<CreditPaymentTransactionRequest> creditPaymentTransactionRequest, ServerWebExchange exchange) {
-        return transactionService.createCreditPaymentTransaction(creditPaymentTransactionRequest).map(ResponseEntity.status(HttpStatus.CREATED)::body);
+        return creditTransactionService.createCreditPaymentTransaction(creditPaymentTransactionRequest).map(ResponseEntity.status(HttpStatus.CREATED)::body);
     }
 }
