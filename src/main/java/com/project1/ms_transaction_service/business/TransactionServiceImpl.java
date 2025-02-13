@@ -2,6 +2,7 @@ package com.project1.ms_transaction_service.business;
 
 import com.project1.ms_transaction_service.business.adapter.AccountService;
 import com.project1.ms_transaction_service.business.adapter.CreditCardService;
+import com.project1.ms_transaction_service.business.adapter.CreditService;
 import com.project1.ms_transaction_service.business.adapter.CustomerService;
 import com.project1.ms_transaction_service.exception.BadRequestException;
 import com.project1.ms_transaction_service.exception.CreditCardCustomerMissmatchException;
@@ -9,6 +10,7 @@ import com.project1.ms_transaction_service.model.*;
 import com.project1.ms_transaction_service.model.entity.*;
 import com.project1.ms_transaction_service.repository.AccountTransactionRepository;
 import com.project1.ms_transaction_service.repository.CreditCardTransactionRepository;
+import com.project1.ms_transaction_service.repository.CreditTransactionRepository;
 import com.project1.ms_transaction_service.repository.TransactionRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +22,6 @@ import reactor.util.function.Tuples;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -40,7 +41,13 @@ public class TransactionServiceImpl implements TransactionService {
     private CreditCardTransactionRepository creditCardTransactionRepository;
 
     @Autowired
+    private CreditTransactionRepository creditTransactionRepository;
+
+    @Autowired
     private CreditCardService creditCardService;
+
+    @Autowired
+    private CreditService creditService;
 
     @Autowired
     private AccountService accountService;
@@ -69,7 +76,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public Mono<CreditCardTransactionResponse> createCreditCardTransaction(Mono<CreditCardTransactionRequest> request) {
+    public Mono<CreditCardUsageTransactionResponse> createCreditCardUsageTransaction(Mono<CreditCardUsageTransactionRequest> request) {
         return request
                 .flatMap(this::validateAndGetCreditCard)
                 .flatMap(this::validateCreditCardLimit)
@@ -111,6 +118,46 @@ public class TransactionServiceImpl implements TransactionService {
                 );
     }
 
+    @Override
+    public Mono<CreditPaymentTransactionResponse> createCreditPaymentTransaction(Mono<CreditPaymentTransactionRequest> request) {
+        return request
+                .flatMap(this::validateAndGetCredit)
+                .map(tuple -> {
+                    CreditResponse creditResponse = tuple.getT1();
+                    CreditPaymentTransactionRequest creditPaymentTransactionRequest = tuple.getT2();
+
+                    CreditTransaction creditTransactionEntity = transactionMapper.getCreditPaymentTransactionEntity(creditPaymentTransactionRequest);
+
+                    return Tuples.of(creditResponse, creditTransactionEntity);
+                })
+                .flatMap(tuple -> {
+                    CreditResponse creditResponse = tuple.getT1();
+                    CreditTransaction creditTransaction = tuple.getT2();
+
+                    return creditTransactionRepository.save(creditTransaction)
+                            .map(savedTransaction -> Tuples.of(creditResponse, savedTransaction));
+                })
+                .flatMap(tuple -> {
+                    CreditResponse creditResponse = tuple.getT1();
+                    CreditTransaction creditTransaction = tuple.getT2();
+
+                    CreditPatchRequest patchRequest = new CreditPatchRequest();
+                    if (creditResponse.getAmountPaid() != null) {
+                        BigDecimal newAmountPaid = creditResponse.getAmountPaid().add(creditResponse.getMonthlyPayment());
+                        patchRequest.setAmountPaid(newAmountPaid);
+                        return creditService.updateCreditById(creditTransaction.getCreditId(), patchRequest)
+                                .map(cr -> creditTransaction);
+                    }
+                    return Mono.just(creditTransaction);
+                })
+                .map(transactionMapper::getCreditPaymentTransactionResponse);
+    }
+
+    private Mono<Tuple2<CreditResponse, CreditPaymentTransactionRequest>> validateAndGetCredit(CreditPaymentTransactionRequest request) {
+        return creditService.getCreditById(request.getCreditId())
+                .map(creditResponse -> Tuples.of(creditResponse, request));
+    }
+
     /**
      * Validates that the credit card exists and belongs to the customer
      *
@@ -118,9 +165,11 @@ public class TransactionServiceImpl implements TransactionService {
      * @return Tuple of request and card response if valid
      * @throws CreditCardCustomerMissmatchException if card doesn't belong to customer
      */
-    private Mono<Tuple2<CreditCardTransactionRequest, CreditCardResponse>> validateAndGetCreditCard(CreditCardTransactionRequest request) {
+    private Mono<Tuple2<CreditCardUsageTransactionRequest, CreditCardResponse>> validateAndGetCreditCard(CreditCardUsageTransactionRequest request) {
         return creditCardService.getCreditCardByCardNumber(request.getCreditCard())
-                .filter(card -> card.getCustomerId().equals(request.getCustomerId()))
+                .filter(card -> Optional.ofNullable(card.getCustomerId())
+                        .map(id -> id.equals(request.getCustomerId()))
+                        .orElse(false))
                 .switchIfEmpty(Mono.error(new CreditCardCustomerMissmatchException()))
                 .map(card -> Tuples.of(request, card));
     }
@@ -132,8 +181,8 @@ public class TransactionServiceImpl implements TransactionService {
      * @return The input tuple if validation passes
      * @throws BadRequestException if insufficient funds available
      */
-    private Mono<Tuple2<CreditCardTransactionRequest, CreditCardResponse>> validateCreditCardLimit(Tuple2<CreditCardTransactionRequest, CreditCardResponse> tuple) {
-        CreditCardTransactionRequest request = tuple.getT1();
+    private Mono<Tuple2<CreditCardUsageTransactionRequest, CreditCardResponse>> validateCreditCardLimit(Tuple2<CreditCardUsageTransactionRequest, CreditCardResponse> tuple) {
+        CreditCardUsageTransactionRequest request = tuple.getT1();
         CreditCardResponse card = tuple.getT2();
 
         if (card.getUsedAmount() != null) {
@@ -152,8 +201,8 @@ public class TransactionServiceImpl implements TransactionService {
      * @param tuple Contains the transaction request and card details
      * @return The saved credit card transaction
      */
-    private Mono<CreditCardTransaction> processTransaction(Tuple2<CreditCardTransactionRequest, CreditCardResponse> tuple) {
-        CreditCardTransactionRequest request = tuple.getT1();
+    private Mono<CreditCardTransaction> processTransaction(Tuple2<CreditCardUsageTransactionRequest, CreditCardResponse> tuple) {
+        CreditCardUsageTransactionRequest request = tuple.getT1();
         CreditCardResponse card = tuple.getT2();
 
         return creditCardTransactionRepository.save(transactionMapper.getCreditCardTransactionEntity(request))
@@ -266,15 +315,17 @@ public class TransactionServiceImpl implements TransactionService {
      */
     private AccountPatchRequest createAccountPatchRequest(Transaction transaction, AccountResponse accountResponse) {
         AccountPatchRequest accountPatchRequest = new AccountPatchRequest();
-        BigDecimal newBalance = accountResponse.getBalance();
+        BigDecimal newBalance = Optional.ofNullable(accountResponse.getBalance()).orElse(BigDecimal.ZERO);
         AccountTransaction accountTransaction = (AccountTransaction) transaction;
         AccountTransactionType transactionType = AccountTransactionType.valueOf(accountTransaction.getType().toString());
+
         if (transactionType.equals(AccountTransactionType.DEPOSIT)) {
-            newBalance = newBalance.add(accountTransaction.getAmount());
+            newBalance = newBalance.add(Optional.ofNullable(accountTransaction.getAmount()).orElse(BigDecimal.ZERO));
         } else {
-            newBalance = newBalance.subtract(accountTransaction.getAmount());
+            newBalance = newBalance.subtract(Optional.ofNullable(accountTransaction.getAmount()).orElse(BigDecimal.ZERO));
         }
-        Integer newMovements = accountResponse.getMonthlyMovements() + 1;
+
+        Integer newMovements = Optional.ofNullable(accountResponse.getMonthlyMovements()).orElse(0) + 1;
         accountPatchRequest.setBalance(newBalance);
         accountPatchRequest.setMonthlyMovements(newMovements);
         return accountPatchRequest;

@@ -29,8 +29,8 @@ public class TransactionApiDelegateImpl implements TransactionsApiDelegate {
     }
 
     @Override
-    public Mono<ResponseEntity<CreditCardTransactionResponse>> createTransactionCreditCard(Mono<CreditCardTransactionRequest> creditCardTransactionRequest, ServerWebExchange exchange) {
-        return transactionService.createCreditCardTransaction(creditCardTransactionRequest).map(ResponseEntity::ok);
+    public Mono<ResponseEntity<CreditCardUsageTransactionResponse>> createCreditCardUsageTransaction(Mono<CreditCardUsageTransactionRequest> creditCardTransactionRequest, ServerWebExchange exchange) {
+        return transactionService.createCreditCardUsageTransaction(creditCardTransactionRequest).map(ResponseEntity::ok);
     }
 
     @Override
@@ -41,5 +41,10 @@ public class TransactionApiDelegateImpl implements TransactionsApiDelegate {
     @Override
     public Mono<ResponseEntity<CustomerProductsResponse>> getAllCustomerProductsByRuc(String ruc, ServerWebExchange exchange) {
         return transactionService.getAllCustomerProductsByRuc(ruc).map(ResponseEntity::ok);
+    }
+
+    @Override
+    public Mono<ResponseEntity<CreditPaymentTransactionResponse>> createCreditPaymentTransaction(Mono<CreditPaymentTransactionRequest> creditPaymentTransactionRequest, ServerWebExchange exchange) {
+        return transactionService.createCreditPaymentTransaction(creditPaymentTransactionRequest).map(ResponseEntity.status(HttpStatus.CREATED)::body);
     }
 }

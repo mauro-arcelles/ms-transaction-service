@@ -7,20 +7,19 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
-public class CreditCardServiceImpl implements CreditCardService {
+public class CreditServiceImpl implements CreditService {
 
     @Autowired
     @Qualifier("creditWebClient")
     private WebClient creditWebClient;
 
     @Override
-    public Mono<CreditCardResponse> getCreditCardByCardNumber(String cardNumber) {
+    public Mono<CreditResponse> getCreditById(String creditId) {
         return creditWebClient.get()
-                .uri("/credit-card/by-card-number/{cardNumber}", cardNumber)
+                .uri("/credit/{creditId}", creditId)
                 .retrieve()
                 .onStatus(HttpStatus::is4xxClientError, response ->
                         response.bodyToMono(ResponseBase.class)
@@ -28,14 +27,14 @@ public class CreditCardServiceImpl implements CreditCardService {
                                         Mono.error(new BadRequestException(error.getMessage()))
                                 )
                 )
-                .bodyToMono(CreditCardResponse.class);
+                .bodyToMono(CreditResponse.class);
     }
 
     @Override
-    public Mono<CreditCardResponse> updateCreditCard(String id, CreditCardPatchRequest request) {
+    public Mono<CreditResponse> updateCreditById(String creditId, CreditPatchRequest request) {
         return creditWebClient.patch()
-                .uri("/credit-card/{id}", id)
-                .body(Mono.just(request), CreditCardPatchRequest.class)
+                .uri("/credit/{creditId}", creditId)
+                .body(Mono.just(request), CreditPatchRequest.class)
                 .retrieve()
                 .onStatus(HttpStatus::is4xxClientError, response ->
                         response.bodyToMono(ResponseBase.class)
@@ -43,21 +42,6 @@ public class CreditCardServiceImpl implements CreditCardService {
                                         Mono.error(new BadRequestException(error.getMessage()))
                                 )
                 )
-                .bodyToMono(CreditCardResponse.class);
+                .bodyToMono(CreditResponse.class);
     }
-
-    @Override
-    public Flux<CreditCardResponse> getCreditCardsByCustomerId(String customerId) {
-        return creditWebClient.get()
-                .uri("/credit-card/by-customer/{customerId}", customerId)
-                .retrieve()
-                .onStatus(HttpStatus::is4xxClientError, response ->
-                        response.bodyToMono(ResponseBase.class)
-                                .flatMap(error ->
-                                        Mono.error(new BadRequestException(error.getMessage()))
-                                )
-                )
-                .bodyToFlux(CreditCardResponse.class);
-    }
-
 }

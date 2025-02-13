@@ -18,21 +18,21 @@ public class WebClientConfig {
     private String customerServiceBaseUrl;
 
     @Bean("accountWebClient")
-    public WebClient accountClient() {
+    public WebClient accountWebClient() {
         return WebClient.builder()
                 .baseUrl(accountServiceBaseUrl)
                 .build();
     }
 
-    @Bean("creditCardWebClient")
-    public WebClient creditCardClient() {
+    @Bean("creditWebClient")
+    public WebClient creditWebClient() {
         return WebClient.builder()
                 .baseUrl(creditServiceBaseUrl)
                 .build();
     }
 
     @Bean("customerServiceWebClient")
-    public WebClient customerServiceClient() {
+    public WebClient customerServiceWebClient() {
         return WebClient.builder()
                 .baseUrl(customerServiceBaseUrl)
                 .build();

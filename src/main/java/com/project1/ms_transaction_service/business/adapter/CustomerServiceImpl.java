@@ -38,4 +38,15 @@ public class CustomerServiceImpl implements CustomerService {
                                 .flatMap(error -> Mono.error(new BadRequestException(error.getMessage()))))
                 .bodyToMono(CustomerResponse.class);
     }
+
+    @Override
+    public Mono<CustomerResponse> getCustomerById(String id) {
+        return webClient.get()
+                .uri("/{id}", id)
+                .retrieve()
+                .onStatus(HttpStatus::is4xxClientError, response ->
+                        response.bodyToMono(ResponseBase.class)
+                                .flatMap(error -> Mono.error(new BadRequestException(error.getMessage()))))
+                .bodyToMono(CustomerResponse.class);
+    }
 }

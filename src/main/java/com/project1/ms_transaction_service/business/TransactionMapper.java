@@ -1,12 +1,8 @@
 package com.project1.ms_transaction_service.business;
 
 import com.project1.ms_transaction_service.model.*;
-import com.project1.ms_transaction_service.model.entity.AccountTransaction;
-import com.project1.ms_transaction_service.model.entity.CreditCardTransaction;
-import com.project1.ms_transaction_service.model.entity.Transaction;
-import com.project1.ms_transaction_service.model.entity.AccountTransactionType;
+import com.project1.ms_transaction_service.model.entity.*;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Flux;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -38,8 +34,8 @@ public class TransactionMapper {
         return accountTransaction;
     }
 
-    public CreditCardTransactionResponse getCreditCardTransactionResponse(Transaction transaction) {
-        CreditCardTransactionResponse creditCardTransactionResponse = new CreditCardTransactionResponse();
+    public CreditCardUsageTransactionResponse getCreditCardTransactionResponse(Transaction transaction) {
+        CreditCardUsageTransactionResponse creditCardTransactionResponse = new CreditCardUsageTransactionResponse();
         CreditCardTransaction creditCardTransaction = (CreditCardTransaction) transaction;
         creditCardTransactionResponse.setCreditCard(creditCardTransaction.getCreditCard());
         creditCardTransactionResponse.setAmount(creditCardTransaction.getAmount());
@@ -48,7 +44,7 @@ public class TransactionMapper {
         return creditCardTransactionResponse;
     }
 
-    public CreditCardTransaction getCreditCardTransactionEntity(CreditCardTransactionRequest request) {
+    public CreditCardTransaction getCreditCardTransactionEntity(CreditCardUsageTransactionRequest request) {
         CreditCardTransaction creditCardTransaction = new CreditCardTransaction();
         creditCardTransaction.setAmount(request.getAmount());
         creditCardTransaction.setCreditCard(request.getCreditCard());
@@ -65,6 +61,18 @@ public class TransactionMapper {
         customerProductsResponse.setAccounts(accounts);
         customerProductsResponse.setCreditCards(creditCards);
         return customerProductsResponse;
+    }
+
+    public CreditTransaction getCreditPaymentTransactionEntity(CreditPaymentTransactionRequest request) {
+        CreditTransaction creditTransaction = new CreditTransaction();
+        creditTransaction.setCreditId(request.getCreditId());
+        return creditTransaction;
+    }
+
+    public CreditPaymentTransactionResponse getCreditPaymentTransactionResponse(CreditTransaction creditTransaction) {
+        CreditPaymentTransactionResponse creditPaymentTransactionResponse = new CreditPaymentTransactionResponse();
+        creditPaymentTransactionResponse.setCreditId(creditTransaction.getCreditId());
+        return  creditPaymentTransactionResponse;
     }
 
 }

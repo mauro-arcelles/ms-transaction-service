@@ -25,23 +25,41 @@ paths:
               schema:
                 $ref: '#/components/schemas/AccountTransactionResponse'
 
-  /transactions/credit-card:
+  /transactions/credit-card/usage:
     post:
-      summary: Create transaction for credit cards
-      operationId: createTransactionCreditCard
+      summary: Create an usage transaction for credit cards
+      operationId: createCreditCardUsageTransaction
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreditCardTransactionRequest'
+              $ref: '#/components/schemas/CreditCardUsageTransactionRequest'
       responses:
         '201':
           description: Credit card transaction created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreditCardTransactionResponse'
+                $ref: '#/components/schemas/CreditCardUsageTransactionResponse'
+
+  /transactions/credit/payment:
+    post:
+      summary: Create a payment transaction for credit
+      operationId: createCreditPaymentTransaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreditPaymentTransactionRequest'
+      responses:
+        '201':
+          description: Credit payment transaction created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditPaymentTransactionResponse'
 
   /transactions/account/by-account/{accountNumber}:
     get:
@@ -138,7 +156,7 @@ components:
         - type
         - amount
 
-    CreditCardTransactionRequest:
+    CreditCardUsageTransactionRequest:
       type: object
       properties:
         creditCard:
@@ -154,7 +172,7 @@ components:
         - customerId
         - amount
 
-    CreditCardTransactionResponse:
+    CreditCardUsageTransactionResponse:
       type: object
       properties:
         creditCard:
@@ -165,6 +183,30 @@ components:
           type: number
         description:
           type: string
+
+    CreditPaymentTransactionRequest:
+      type: object
+      properties:
+        creditId:
+          type: string
+      required:
+        - creditId
+        - customerId
+        - amount
+
+    CreditPaymentTransactionResponse:
+      type: object
+      properties:
+        creditId:
+          type: string
+
+    CreditPatchRequest:
+      type: object
+      properties:
+        amountPaid:
+          type: number
+      required:
+        - amountPaid
 
     AccountTransactionResponse:
       type: object
@@ -249,6 +291,26 @@ components:
           type: number
         creditCardStatus:
           type: string
+
+    CreditResponse:
+      type: object
+      properties:
+        clientId:
+          type: string
+        amount:
+          type: number
+        status:
+          type: string
+        interestRate:
+          type: number
+        termInMonths:
+          type: integer
+        monthlyPayment:
+          type: number
+        amountPaid:
+          type: number
+        totalAmount:
+          type: number
 
     CustomerResponse:
       type: object
