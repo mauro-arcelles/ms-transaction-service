@@ -1,10 +1,10 @@
 package com.project1.ms_transaction_service;
 
 import com.project1.ms_transaction_service.api.TransactionsApiDelegate;
-import com.project1.ms_transaction_service.business.AccountTransactionService;
-import com.project1.ms_transaction_service.business.CreditCardTransactionService;
-import com.project1.ms_transaction_service.business.CreditTransactionService;
-import com.project1.ms_transaction_service.business.TransactionService;
+import com.project1.ms_transaction_service.business.service.AccountTransactionService;
+import com.project1.ms_transaction_service.business.service.CreditCardTransactionService;
+import com.project1.ms_transaction_service.business.service.CreditTransactionService;
+import com.project1.ms_transaction_service.business.service.TransactionService;
 import com.project1.ms_transaction_service.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

@@ -25,6 +25,26 @@ paths:
               schema:
                 $ref: '#/components/schemas/AccountTransactionResponse'
 
+  /transactions/account/by-account/{accountNumber}:
+    get:
+      summary: Get transactions by account
+      operationId: getTransactionsByAccount
+      parameters:
+        - name: accountNumber
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of transactions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccountTransactionResponse'
+
   /transactions/credit-card/usage:
     post:
       summary: Create an usage transaction for credit cards
@@ -60,26 +80,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CreditPaymentTransactionResponse'
-
-  /transactions/account/by-account/{accountNumber}:
-    get:
-      summary: Get transactions by account
-      operationId: getTransactionsByAccount
-      parameters:
-        - name: accountNumber
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: List of transactions
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AccountTransactionResponse'
 
   /transactions/customer-products/dni/{dni}:
     get:
@@ -152,7 +152,7 @@ components:
         description:
           type: string
       required:
-        - destinationAccountNumber
+        - originAccountNumber
         - type
         - amount
 
@@ -275,6 +275,8 @@ components:
           type: integer
         maxMonthlyMovements:
           type: integer
+        customerType:
+          type: string
 
     CreditCardResponse:
       type: object

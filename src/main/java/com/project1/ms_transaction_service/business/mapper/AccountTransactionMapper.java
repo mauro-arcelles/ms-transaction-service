@@ -1,5 +1,9 @@
-package com.project1.ms_transaction_service.business;
+package com.project1.ms_transaction_service.business.mapper;
 
+import com.project1.ms_transaction_service.business.service.strategy.DepositStrategy;
+import com.project1.ms_transaction_service.business.service.strategy.TransactionStrategy;
+import com.project1.ms_transaction_service.business.service.strategy.TransferStrategy;
+import com.project1.ms_transaction_service.business.service.strategy.WithdrawalStrategy;
 import com.project1.ms_transaction_service.model.AccountPatchRequest;
 import com.project1.ms_transaction_service.model.AccountResponse;
 import com.project1.ms_transaction_service.model.AccountTransactionRequest;
@@ -39,22 +43,37 @@ public class AccountTransactionMapper {
         return accountTransaction;
     }
 
-    public AccountPatchRequest getAccountPatchRequest(Transaction transaction, AccountResponse accountResponse) {
-        AccountPatchRequest accountPatchRequest = new AccountPatchRequest();
-        BigDecimal newBalance = Optional.ofNullable(accountResponse.getBalance()).orElse(BigDecimal.ZERO);
+    public AccountPatchRequest getAccountPatchRequest(Transaction transaction, AccountResponse accountResponse, boolean isOrigin) {
+        AccountPatchRequest request = new AccountPatchRequest();
         AccountTransaction accountTransaction = (AccountTransaction) transaction;
-        AccountTransactionType transactionType = AccountTransactionType.valueOf(accountTransaction.getType().toString());
 
-        if (transactionType.equals(AccountTransactionType.DEPOSIT)) {
-            newBalance = newBalance.add(Optional.ofNullable(accountTransaction.getAmount()).orElse(BigDecimal.ZERO));
-        } else {
-            newBalance = newBalance.subtract(Optional.ofNullable(accountTransaction.getAmount()).orElse(BigDecimal.ZERO));
+        TransactionStrategy strategy;
+        AccountTransactionType type = AccountTransactionType.valueOf(accountTransaction.getType().toString());
+
+        switch (type) {
+            case DEPOSIT:
+                strategy = new DepositStrategy();
+                break;
+            case WITHDRAWAL:
+                strategy = new WithdrawalStrategy();
+                break;
+            case TRANSFER:
+                strategy = new TransferStrategy(isOrigin);
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid transaction type");
         }
 
-        Integer newMovements = Optional.ofNullable(accountResponse.getMonthlyMovements()).orElse(0) + 1;
-        accountPatchRequest.setBalance(newBalance);
-        accountPatchRequest.setMonthlyMovements(newMovements);
-        return accountPatchRequest;
+        BigDecimal amount = Optional.ofNullable(accountTransaction.getAmount()).orElse(BigDecimal.ZERO);
+        BigDecimal currentBalance = Optional.ofNullable(accountResponse.getBalance()).orElse(BigDecimal.ZERO);
+
+        request.setBalance(strategy.calculateBalance(currentBalance, amount));
+
+        if (strategy.updateMovements()) {
+            request.setMonthlyMovements(Optional.ofNullable(accountResponse.getMonthlyMovements()).orElse(0) + 1);
+        }
+
+        return request;
     }
 
 }

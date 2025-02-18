@@ -1,4 +1,4 @@
-package com.project1.ms_transaction_service.business;
+package com.project1.ms_transaction_service.business.mapper;
 
 import com.project1.ms_transaction_service.model.CreditPaymentTransactionRequest;
 import com.project1.ms_transaction_service.model.CreditPaymentTransactionResponse;
