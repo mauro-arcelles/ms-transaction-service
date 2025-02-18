@@ -12,10 +12,28 @@ Spring Boot Webflux microservice that handles transactions operations (deposits,
 - Swagger ui
 
 ## Configuration
-Service connects to Config Server for properties:
+Service connects to Config Server using:
 ```properties
 spring.application.name=ms-transaction-service
 spring.config.import=optional:configserver:http://localhost:8888
+```
+for properties
+```yaml
+spring:
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: ms-transaction-service
+
+server:
+  port: 8092
+
+application:
+  config:
+    account-service-url: http://localhost:8091/api/v1/accounts
+    credit-service-url: http://localhost:8093/api/v1/credits
+    customer-service-url: http://localhost:8090/api/v1/customers
 ```
 
 ## Swagger
