@@ -14,7 +14,7 @@ import reactor.core.publisher.Mono;
 public class CustomerServiceImpl implements CustomerService {
 
     @Autowired
-    @Qualifier("customerServiceWebClient")
+    @Qualifier("customerWebClient")
     private WebClient webClient;
 
     @Override

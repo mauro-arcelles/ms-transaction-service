@@ -31,8 +31,8 @@ public class WebClientConfig {
                 .build();
     }
 
-    @Bean("customerServiceWebClient")
-    public WebClient customerServiceWebClient() {
+    @Bean("customerWebClient")
+    public WebClient customerWebClient() {
         return WebClient.builder()
                 .baseUrl(customerServiceBaseUrl)
                 .build();
