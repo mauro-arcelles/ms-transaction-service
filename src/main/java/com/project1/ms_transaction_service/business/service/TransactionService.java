@@ -6,4 +6,6 @@ import reactor.core.publisher.Mono;
 public interface TransactionService {
     Mono<CustomerProductsResponse> getAllCustomerProductsByDni(String dni);
     Mono<CustomerProductsResponse> getAllCustomerProductsByRuc(String ruc);
+    Mono<CustomerProductsResponse> getAllCustomerProductsByCustomerId(String customerId);
+    Mono<CustomerProductsAverageBalance> getAllCustomerProductsAvgBalanceCustomerId(String customerId);
 }

@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
@@ -43,5 +44,19 @@ public class CreditServiceImpl implements CreditService {
                                 )
                 )
                 .bodyToMono(CreditResponse.class);
+    }
+
+    @Override
+    public Flux<CreditResponse> getCreditsByCustomerId(String customerId) {
+        return creditWebClient.get()
+                .uri("/credit/by-customer/{customerId}", customerId)
+                .retrieve()
+                .onStatus(HttpStatus::is4xxClientError, response ->
+                        response.bodyToMono(ResponseBase.class)
+                                .flatMap(error ->
+                                        Mono.error(new BadRequestException(error.getMessage()))
+                                )
+                )
+                .bodyToFlux(CreditResponse.class);
     }
 }

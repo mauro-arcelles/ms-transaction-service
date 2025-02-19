@@ -36,12 +36,14 @@ public class TransactionServiceImpl implements TransactionService {
                 .flatMap(customerResponse ->
                         Mono.zip(
                                 accountService.getAccountsByCustomerId(customerResponse.getId()).collectList(),
-                                creditCardService.getCreditCardsByCustomerId(customerResponse.getId()).collectList()
+                                creditCardService.getCreditCardsByCustomerId(customerResponse.getId()).collectList(),
+                                creditService.getCreditsByCustomerId(customerResponse.getId()).collectList()
                         ).map(tuple ->
                                 transactionMapper.getCustomerProductsResponse(
                                         customerResponse,
                                         tuple.getT1(),
-                                        tuple.getT2()
+                                        tuple.getT2(),
+                                        tuple.getT3()
                                 )
                         )
                 );
@@ -53,12 +55,52 @@ public class TransactionServiceImpl implements TransactionService {
                 .flatMap(customerResponse ->
                         Mono.zip(
                                 accountService.getAccountsByCustomerId(customerResponse.getId()).collectList(),
-                                creditCardService.getCreditCardsByCustomerId(customerResponse.getId()).collectList()
+                                creditCardService.getCreditCardsByCustomerId(customerResponse.getId()).collectList(),
+                                creditService.getCreditsByCustomerId(customerResponse.getId()).collectList()
                         ).map(tuple ->
                                 transactionMapper.getCustomerProductsResponse(
                                         customerResponse,
                                         tuple.getT1(),
-                                        tuple.getT2()
+                                        tuple.getT2(),
+                                        tuple.getT3()
+                                )
+                        )
+                );
+    }
+
+    @Override
+    public Mono<CustomerProductsResponse> getAllCustomerProductsByCustomerId(String customerId) {
+        return customerService.getCustomerById(customerId)
+                .flatMap(customerResponse ->
+                        Mono.zip(
+                                accountService.getAccountsByCustomerId(customerResponse.getId()).collectList(),
+                                creditCardService.getCreditCardsByCustomerId(customerResponse.getId()).collectList(),
+                                creditService.getCreditsByCustomerId(customerResponse.getId()).collectList()
+                        ).map(tuple ->
+                                transactionMapper.getCustomerProductsResponse(
+                                        customerResponse,
+                                        tuple.getT1(),
+                                        tuple.getT2(),
+                                        tuple.getT3()
+                                )
+                        )
+                );
+    }
+
+    @Override
+    public Mono<CustomerProductsAverageBalance> getAllCustomerProductsAvgBalanceCustomerId(String customerId) {
+        return customerService.getCustomerById(customerId)
+                .flatMap(customerResponse ->
+                        Mono.zip(
+                                accountService.getAccountsByCustomerId(customerResponse.getId()).collectList(),
+                                creditCardService.getCreditCardsByCustomerId(customerResponse.getId()).collectList(),
+                                creditService.getCreditsByCustomerId(customerResponse.getId()).collectList()
+                        ).map(tuple ->
+                                transactionMapper.getCustomerProductsAvgBalanceResponse(
+                                        customerResponse,
+                                        tuple.getT1(),
+                                        tuple.getT2(),
+                                        tuple.getT3()
                                 )
                         )
                 );

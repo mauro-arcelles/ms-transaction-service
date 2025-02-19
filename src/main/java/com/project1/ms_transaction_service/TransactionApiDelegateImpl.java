@@ -59,4 +59,14 @@ public class TransactionApiDelegateImpl implements TransactionsApiDelegate {
     public Mono<ResponseEntity<CreditPaymentTransactionResponse>> createCreditPaymentTransaction(Mono<CreditPaymentTransactionRequest> creditPaymentTransactionRequest, ServerWebExchange exchange) {
         return creditTransactionService.createCreditPaymentTransaction(creditPaymentTransactionRequest).map(ResponseEntity.status(HttpStatus.CREATED)::body);
     }
+
+    @Override
+    public Mono<ResponseEntity<CustomerProductsResponse>> getAllCustomerProductsByCustomerId(String customerId, ServerWebExchange exchange) {
+        return transactionService.getAllCustomerProductsByCustomerId(customerId).map(ResponseEntity::ok);
+    }
+
+    @Override
+    public Mono<ResponseEntity<CustomerProductsAverageBalance>> getAllCustomerProductsAvgBalanceByCustomerId(String customerId, ServerWebExchange exchange) {
+        return transactionService.getAllCustomerProductsAvgBalanceCustomerId(customerId).map(ResponseEntity::ok);
+    }
 }
