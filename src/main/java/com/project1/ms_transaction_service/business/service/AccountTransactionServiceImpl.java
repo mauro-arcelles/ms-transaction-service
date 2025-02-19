@@ -75,6 +75,7 @@ public class AccountTransactionServiceImpl implements AccountTransactionService 
 
     /**
      * Validates the transaction request based on transaction type
+     *
      * @param req The transaction request to validate
      * @return Mono containing the validated request
      * @throws BadRequestException if destination account is missing for TRANSFER type
@@ -90,17 +91,23 @@ public class AccountTransactionServiceImpl implements AccountTransactionService 
 
     /**
      * Retrieves both origin and destination accounts for a transaction
+     *
      * @param request The transaction request containing account numbers
      * @return Mono containing a tuple of origin and destination account responses
      */
-    private Mono<Tuple2<AccountResponse, AccountResponse>> getOriginAndDestinationAccounts(AccountTransactionRequest request) {
+    private Mono<Tuple2<AccountResponse, Optional<AccountResponse>>> getOriginAndDestinationAccounts(AccountTransactionRequest request) {
         Mono<AccountResponse> originAccountMono = accountService.getAccountByAccountNumber(request.getOriginAccountNumber());
-        Mono<AccountResponse> destionationAccountMono = accountService.getAccountByAccountNumber(request.getDestinationAccountNumber());
+        Mono<Optional<AccountResponse>> destionationAccountMono = Mono.just(Optional.empty());
+        if (request.getDestinationAccountNumber() != null) {
+            destionationAccountMono = accountService.getAccountByAccountNumber(request.getDestinationAccountNumber())
+                    .map(Optional::ofNullable);
+        }
         return Mono.zip(originAccountMono, destionationAccountMono);
     }
 
     /**
      * Retrieves all transactions for a given account number
+     *
      * @param accountNumber The account number to get transactions for
      * @return Flux of transaction responses associated with the account
      */
@@ -115,40 +122,45 @@ public class AccountTransactionServiceImpl implements AccountTransactionService 
 
     /**
      * Validates that both accounts involved in the transaction are active
-     * @param tuple Tuple containing origin and destination account responses
+     *
+     * @param tuple Tuple containing origin and optional destination account responses
      * @return Mono containing validated accounts tuple
      * @throws BadRequestException if either account is not in ACTIVE status
      */
-    private Mono<Tuple2<AccountResponse, AccountResponse>> validateAccounts(Tuple2<AccountResponse, AccountResponse> tuple) {
+    private Mono<Tuple2<AccountResponse, Optional<AccountResponse>>> validateAccounts(Tuple2<AccountResponse, Optional<AccountResponse>> tuple) {
         AccountResponse originAccount = tuple.getT1();
-        AccountResponse destinationAccount = tuple.getT2();
+        Optional<AccountResponse> destinationAccountOptional = tuple.getT2();
         CustomerType originAccountCustomerType = CustomerType.valueOf(originAccount.getCustomerType());
-        CustomerType destinationAccountCustomerType = CustomerType.valueOf(destinationAccount.getCustomerType());
         if (!AccountStatus.ACTIVE.toString().equals(originAccount.getStatus())) {
             return Mono.error(new BadRequestException("origin ACCOUNT has " + originAccount.getStatus() + " status"));
         }
         if (!AccountStatus.ACTIVE.toString().equals(originAccount.getStatus())) {
             return Mono.error(new BadRequestException("destination ACCOUNT has " + originAccount.getStatus() + " status"));
         }
-        // validate if accounts are compatible (PERSONAL accounts cannot transfer to BUSINESS accounts)
-        if (originAccountCustomerType.equals(CustomerType.PERSONAL) && destinationAccountCustomerType.equals(CustomerType.BUSINESS)) {
-            return Mono.error(new BadRequestException("PERSONAL accounts cannot transfer to BUSINESS accounts"));
+        if (destinationAccountOptional.isPresent()) {
+            AccountResponse destinationAccount = destinationAccountOptional.get();
+            CustomerType destinationAccountCustomerType = CustomerType.valueOf(destinationAccount.getCustomerType());
+            // validate if accounts are compatible (PERSONAL accounts cannot transfer to BUSINESS accounts)
+            if (originAccountCustomerType.equals(CustomerType.PERSONAL) && destinationAccountCustomerType.equals(CustomerType.BUSINESS)) {
+                return Mono.error(new BadRequestException("PERSONAL accounts cannot transfer to BUSINESS accounts"));
+            }
+            if (originAccountCustomerType.equals(CustomerType.BUSINESS) && destinationAccountCustomerType.equals(CustomerType.PERSONAL)) {
+                return Mono.error(new BadRequestException("BUSINESS accounts cannot transfer to PERSONAL accounts"));
+            }
         }
-        if (originAccountCustomerType.equals(CustomerType.BUSINESS) && destinationAccountCustomerType.equals(CustomerType.PERSONAL)) {
-            return Mono.error(new BadRequestException("BUSINESS accounts cannot transfer to PERSONAL accounts"));
-        }
-        return Mono.just(Tuples.of(originAccount, destinationAccount));
+        return Mono.just(Tuples.of(originAccount, destinationAccountOptional));
     }
 
     /**
      * Validates account movement restrictions based on account type
-     * @param tuple Tuple containing origin and destination account responses
+     *
+     * @param tuple Tuple containing origin and optional destination account responses
      * @return Mono containing validated accounts tuple
      * @throws BadRequestException if movement restrictions are violated
      */
-    private Mono<Tuple2<AccountResponse, AccountResponse>> validateAccountMonthlyMovements(Tuple2<AccountResponse, AccountResponse> tuple) {
+    private Mono<Tuple2<AccountResponse, Optional<AccountResponse>>> validateAccountMonthlyMovements(Tuple2<AccountResponse, Optional<AccountResponse>> tuple) {
         AccountResponse originAccount = tuple.getT1();
-        AccountResponse destinationAccount = tuple.getT2();
+        Optional<AccountResponse> destinationAccountOptional = tuple.getT2();
         AccountType originAccountType = AccountType.valueOf(originAccount.getAccountType());
         Integer originAccountMonthlyMovements = Optional.ofNullable(originAccount.getMonthlyMovements()).orElse(0);
         Integer originAccountMaxMonthlyMovements = Optional.ofNullable(originAccount.getMaxMonthlyMovements()).orElse(0);
@@ -167,17 +179,18 @@ public class AccountTransactionServiceImpl implements AccountTransactionService 
             }
         }
 
-        return Mono.just(Tuples.of(originAccount, destinationAccount));
+        return Mono.just(Tuples.of(originAccount, destinationAccountOptional));
     }
 
     /**
      * Validates if account has sufficient balance for withdrawal or transfer transactions
-     * @param tuple Tuple containing origin and destination account responses
-     * @param req The transaction request containing type and amount
+     *
+     * @param tuple Tuple containing origin and optional of destination account responses
+     * @param req   The transaction request containing type and amount
      * @return Mono containing validated accounts tuple
      * @throws BadRequestException if balance is insufficient
      */
-    private Mono<Tuple2<AccountResponse, AccountResponse>> validateAccountBalance(Tuple2<AccountResponse, AccountResponse> tuple, AccountTransactionRequest req) {
+    private Mono<Tuple2<AccountResponse, Optional<AccountResponse>>> validateAccountBalance(Tuple2<AccountResponse, Optional<AccountResponse>> tuple, AccountTransactionRequest req) {
         AccountResponse originAccount = tuple.getT1();
         AccountTransactionType accountTransactionType = AccountTransactionType.valueOf(req.getType());
 
@@ -195,15 +208,23 @@ public class AccountTransactionServiceImpl implements AccountTransactionService 
     /**
      * Processes a transaction between accounts, handling both single account transactions and transfers
      *
-     * @param accounts Tuple containing origin and destination account responses
+     * @param accounts Tuple containing origin and optional of destination account responses
      * @param req      The transaction request details
      * @return Mono containing the processed transaction
      */
-    private Mono<Transaction> processTransaction(Tuple2<AccountResponse, AccountResponse> accounts, AccountTransactionRequest req) {
+    private Mono<Transaction> processTransaction(Tuple2<AccountResponse, Optional<AccountResponse>> accounts, AccountTransactionRequest req) {
         return processAccountTransaction(accounts.getT1(), req, true)
-                .flatMap(transaction -> AccountTransactionType.TRANSFER.toString().equals(req.getType())
-                        ? processAccountTransaction(accounts.getT2(), req, false)
-                        : Mono.just(transaction));
+                .flatMap(transaction -> {
+                    if (AccountTransactionType.TRANSFER.toString().equals(req.getType())) {
+                        Optional<AccountResponse> destinationAccountOptional = accounts.getT2();
+                        return destinationAccountOptional.map(accountResponse ->
+                                        processAccountTransaction(accountResponse, req, false)
+                                )
+                                .orElseGet(() -> Mono.just(transaction));
+                    } else {
+                        return Mono.just(transaction);
+                    }
+                });
     }
 
     /**
