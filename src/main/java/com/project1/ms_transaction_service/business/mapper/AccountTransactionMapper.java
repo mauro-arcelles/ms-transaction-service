@@ -35,7 +35,10 @@ public class AccountTransactionMapper {
     public Transaction getAccountTransactionEntity(AccountTransactionRequest request) {
         AccountTransaction accountTransaction = new AccountTransaction();
         accountTransaction.setOriginAccountNumber(request.getOriginAccountNumber());
-        accountTransaction.setDestinationAccountNumber(request.getDestinationAccountNumber());
+        AccountTransactionType accountTransactionType = AccountTransactionType.valueOf(request.getType());
+        if (accountTransactionType == AccountTransactionType.TRANSFER) {
+            accountTransaction.setDestinationAccountNumber(request.getDestinationAccountNumber());
+        }
         accountTransaction.setType(AccountTransactionType.valueOf(request.getType()));
         accountTransaction.setAmount(request.getAmount());
         accountTransaction.setDate(LocalDateTime.now());

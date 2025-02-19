@@ -206,51 +206,30 @@ public class AccountTransactionServiceImpl implements AccountTransactionService 
     }
 
     /**
-     * Processes a transaction between accounts, handling both single account transactions and transfers
+     * Processes a transaction by saving it and updating account balances.
+     * For transfers, updates both origin and destination account balances.
      *
-     * @param accounts Tuple containing origin and optional of destination account responses
-     * @param req      The transaction request details
-     * @return Mono containing the processed transaction
+     * @param accounts Tuple containing origin account and optional destination account
+     * @param req      Transaction request details
+     * @return Mono<Transaction> with processed transaction
      */
     private Mono<Transaction> processTransaction(Tuple2<AccountResponse, Optional<AccountResponse>> accounts, AccountTransactionRequest req) {
-        return processAccountTransaction(accounts.getT1(), req, true)
-                .flatMap(transaction -> {
+        Transaction transaction = accountTransactionMapper.getAccountTransactionEntity(req);
+        AccountResponse originAccount = accounts.getT1();
+
+        return transactionRepository.save(transaction)
+                .flatMap(savedTransaction -> updateAccountBalance(originAccount, savedTransaction, true))
+                .flatMap(savedTransaction -> {
                     if (AccountTransactionType.TRANSFER.toString().equals(req.getType())) {
                         Optional<AccountResponse> destinationAccountOptional = accounts.getT2();
-                        return destinationAccountOptional.map(accountResponse ->
-                                        processAccountTransaction(accountResponse, req, false)
+                        return destinationAccountOptional.map(destinationAccount ->
+                                        updateAccountBalance(destinationAccount, savedTransaction, false)
                                 )
                                 .orElseGet(() -> Mono.just(transaction));
                     } else {
                         return Mono.just(transaction);
                     }
                 });
-    }
-
-    /**
-     * Processes a single account transaction
-     *
-     * @param account  The account to process the transaction for
-     * @param req      The transaction request details
-     * @param isOrigin Whether this is the origin account in a transfer
-     * @return Mono containing the processed transaction
-     */
-    private Mono<Transaction> processAccountTransaction(AccountResponse account, AccountTransactionRequest req, boolean isOrigin) {
-        Transaction transaction = accountTransactionMapper.getAccountTransactionEntity(req);
-        return saveTransactionAndUpdateAccount(transaction, account, isOrigin);
-    }
-
-    /**
-     * Saves the transaction and updates the associated account
-     *
-     * @param transaction The transaction to save
-     * @param account     The account to update
-     * @param isOrigin    Whether this is the origin account in a transfer
-     * @return Mono containing the saved transaction
-     */
-    private Mono<Transaction> saveTransactionAndUpdateAccount(Transaction transaction, AccountResponse account, boolean isOrigin) {
-        return transactionRepository.save(transaction)
-                .flatMap(savedTransaction -> updateAccountBalance(account, savedTransaction, isOrigin));
     }
 
     /**
