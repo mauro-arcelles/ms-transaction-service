@@ -23,4 +23,6 @@ public class AccountTransaction extends Transaction {
     private BigDecimal amount;
     private LocalDateTime date;
     private String description;
+    private BigDecimal commissionFee;
+    private BigDecimal commissionFeePercentage;
 }

@@ -10,10 +10,12 @@ import com.project1.ms_transaction_service.model.AccountTransactionRequest;
 import com.project1.ms_transaction_service.model.AccountTransactionResponse;
 import com.project1.ms_transaction_service.model.entity.AccountTransaction;
 import com.project1.ms_transaction_service.model.entity.AccountTransactionType;
+import com.project1.ms_transaction_service.model.entity.AccountType;
 import com.project1.ms_transaction_service.model.entity.Transaction;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -32,12 +34,28 @@ public class AccountTransactionMapper {
         return response;
     }
 
-    public Transaction getAccountTransactionEntity(AccountTransactionRequest request) {
+    public Transaction getAccountTransactionEntity(AccountTransactionRequest request, AccountResponse accountResponse) {
         AccountTransaction accountTransaction = new AccountTransaction();
         accountTransaction.setOriginAccountNumber(request.getOriginAccountNumber());
         AccountTransactionType accountTransactionType = AccountTransactionType.valueOf(request.getType());
         if (accountTransactionType == AccountTransactionType.TRANSFER) {
             accountTransaction.setDestinationAccountNumber(request.getDestinationAccountNumber());
+        }
+        AccountType accountType = AccountType.valueOf(accountResponse.getAccountType());
+        if (accountType == AccountType.SAVINGS) {
+            if (accountTransactionType == AccountTransactionType.DEPOSIT || accountTransactionType == AccountTransactionType.WITHDRAWAL) {
+                if (accountResponse.getMonthlyMovements() != null
+                        && accountResponse.getMaxMonthlyMovementsNoFee() != null
+                        && accountResponse.getTransactionCommissionFeePercentage() != null
+                        && accountResponse.getMonthlyMovements() >= accountResponse.getMaxMonthlyMovementsNoFee()) {
+
+                    accountTransaction.setCommissionFeePercentage(accountResponse.getTransactionCommissionFeePercentage());
+                    BigDecimal commissionFee = accountResponse.getTransactionCommissionFeePercentage()
+                            .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP)
+                            .multiply(request.getAmount());
+                    accountTransaction.setCommissionFee(commissionFee);
+                }
+            }
         }
         accountTransaction.setType(AccountTransactionType.valueOf(request.getType()));
         accountTransaction.setAmount(request.getAmount());
@@ -55,10 +73,10 @@ public class AccountTransactionMapper {
 
         switch (type) {
             case DEPOSIT:
-                strategy = new DepositStrategy();
+                strategy = new DepositStrategy(isOrigin, accountTransaction.getCommissionFee());
                 break;
             case WITHDRAWAL:
-                strategy = new WithdrawalStrategy();
+                strategy = new WithdrawalStrategy(isOrigin, accountTransaction.getCommissionFee());
                 break;
             case TRANSFER:
                 strategy = new TransferStrategy(isOrigin);

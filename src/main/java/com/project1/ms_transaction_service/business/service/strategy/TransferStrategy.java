@@ -3,7 +3,7 @@ package com.project1.ms_transaction_service.business.service.strategy;
 import java.math.BigDecimal;
 
 public class TransferStrategy implements TransactionStrategy {
-    private boolean isOrigin;
+    private final boolean isOrigin;
 
     public TransferStrategy(boolean isOrigin) {
         this.isOrigin = isOrigin;

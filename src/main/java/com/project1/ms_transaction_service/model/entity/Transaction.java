@@ -17,5 +17,4 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class Transaction {
     @Id
     private String id;
-
 }

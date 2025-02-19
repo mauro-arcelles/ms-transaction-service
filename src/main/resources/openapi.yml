@@ -277,6 +277,10 @@ components:
           type: integer
         customerType:
           type: string
+        maxMonthlyMovementsNoFee:
+          type: integer
+        transactionCommissionFeePercentage:
+          type: number
 
     CreditCardResponse:
       type: object

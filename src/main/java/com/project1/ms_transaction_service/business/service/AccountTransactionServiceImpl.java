@@ -45,11 +45,11 @@ public class AccountTransactionServiceImpl implements AccountTransactionService 
                 .flatMap(this::validateTransactionType)
                 .flatMap(this::validateTransactionRequest)
                 .flatMap(req ->
-                        this.getOriginAndDestinationAccounts(req)
-                                .flatMap(this::validateAccounts)
+                        getOriginAndDestinationAccounts(req)
+                                .flatMap(tuple -> validateAccounts(tuple, req))
                                 .flatMap(this::validateAccountMonthlyMovements)
-                                .flatMap(tuple -> this.validateAccountBalance(tuple, req))
-                                .flatMap(tuple -> this.processTransaction(tuple, req)))
+                                .flatMap(tuple -> validateAccountBalance(tuple, req))
+                                .flatMap(tuple -> processTransaction(tuple, req)))
                 .map(accountTransactionMapper::getAccountTransactionResponse)
                 .doOnSuccess(t -> log.info("Transaction created: {}", t.getId()))
                 .doOnError(e -> log.error("Error creating transaction", e));
@@ -127,27 +127,41 @@ public class AccountTransactionServiceImpl implements AccountTransactionService 
      * @return Mono containing validated accounts tuple
      * @throws BadRequestException if either account is not in ACTIVE status
      */
-    private Mono<Tuple2<AccountResponse, Optional<AccountResponse>>> validateAccounts(Tuple2<AccountResponse, Optional<AccountResponse>> tuple) {
+    private Mono<Tuple2<AccountResponse, Optional<AccountResponse>>> validateAccounts(Tuple2<AccountResponse, Optional<AccountResponse>> tuple, AccountTransactionRequest req) {
         AccountResponse originAccount = tuple.getT1();
         Optional<AccountResponse> destinationAccountOptional = tuple.getT2();
         CustomerType originAccountCustomerType = CustomerType.valueOf(originAccount.getCustomerType());
+        AccountType originAccountType = AccountType.valueOf(originAccount.getAccountType());
+        AccountTransactionType accountTransactionType = AccountTransactionType.valueOf(req.getType());
         if (!AccountStatus.ACTIVE.toString().equals(originAccount.getStatus())) {
             return Mono.error(new BadRequestException("origin ACCOUNT has " + originAccount.getStatus() + " status"));
         }
         if (!AccountStatus.ACTIVE.toString().equals(originAccount.getStatus())) {
             return Mono.error(new BadRequestException("destination ACCOUNT has " + originAccount.getStatus() + " status"));
         }
-        if (destinationAccountOptional.isPresent()) {
-            AccountResponse destinationAccount = destinationAccountOptional.get();
-            CustomerType destinationAccountCustomerType = CustomerType.valueOf(destinationAccount.getCustomerType());
-            // validate if accounts are compatible (PERSONAL accounts cannot transfer to BUSINESS accounts)
-            if (originAccountCustomerType.equals(CustomerType.PERSONAL) && destinationAccountCustomerType.equals(CustomerType.BUSINESS)) {
-                return Mono.error(new BadRequestException("PERSONAL accounts cannot transfer to BUSINESS accounts"));
+        if (accountTransactionType == AccountTransactionType.TRANSFER) {
+            // transfer transactions cannot be made from fixed term account
+            if (originAccountType == AccountType.FIXED_TERM) {
+                return Mono.error(new BadRequestException("TRANSFER transactions cannot be made from FIXED_TERM account"));
             }
-            if (originAccountCustomerType.equals(CustomerType.BUSINESS) && destinationAccountCustomerType.equals(CustomerType.PERSONAL)) {
-                return Mono.error(new BadRequestException("BUSINESS accounts cannot transfer to PERSONAL accounts"));
+
+            if (destinationAccountOptional.isPresent()) {
+                AccountResponse destinationAccount = destinationAccountOptional.get();
+                AccountType destinationAccountType = AccountType.valueOf(destinationAccount.getAccountType());
+                CustomerType destinationAccountCustomerType = CustomerType.valueOf(destinationAccount.getCustomerType());
+                // validate if accounts are compatible (PERSONAL accounts cannot transfer to BUSINESS accounts)
+                if (originAccountCustomerType.equals(CustomerType.PERSONAL) && destinationAccountCustomerType.equals(CustomerType.BUSINESS)) {
+                    return Mono.error(new BadRequestException("PERSONAL accounts cannot transfer to BUSINESS accounts"));
+                }
+                if (originAccountCustomerType.equals(CustomerType.BUSINESS) && destinationAccountCustomerType.equals(CustomerType.PERSONAL)) {
+                    return Mono.error(new BadRequestException("BUSINESS accounts cannot transfer to PERSONAL accounts"));
+                }
+                if (destinationAccountType == AccountType.FIXED_TERM) {
+                    return Mono.error(new BadRequestException("TRANSFER transactions cannot be carried out to FIXED_TERM accounts"));
+                }
             }
         }
+
         return Mono.just(Tuples.of(originAccount, destinationAccountOptional));
     }
 
@@ -214,8 +228,8 @@ public class AccountTransactionServiceImpl implements AccountTransactionService 
      * @return Mono<Transaction> with processed transaction
      */
     private Mono<Transaction> processTransaction(Tuple2<AccountResponse, Optional<AccountResponse>> accounts, AccountTransactionRequest req) {
-        Transaction transaction = accountTransactionMapper.getAccountTransactionEntity(req);
         AccountResponse originAccount = accounts.getT1();
+        Transaction transaction = accountTransactionMapper.getAccountTransactionEntity(req, originAccount);
 
         return transactionRepository.save(transaction)
                 .flatMap(savedTransaction -> updateAccountBalance(originAccount, savedTransaction, true))
