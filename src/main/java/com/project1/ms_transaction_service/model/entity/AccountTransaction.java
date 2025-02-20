@@ -21,7 +21,6 @@ public class AccountTransaction extends Transaction {
     private String destinationAccountNumber;
     private AccountTransactionType type;
     private BigDecimal amount;
-    private LocalDateTime date;
     private String description;
     private BigDecimal commissionFee;
     private BigDecimal commissionFeePercentage;

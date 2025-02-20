@@ -21,20 +21,19 @@ import java.util.Optional;
 
 @Component
 public class AccountTransactionMapper {
-    public AccountTransactionResponse getAccountTransactionResponse(Transaction transaction) {
+    public AccountTransactionResponse getAccountTransactionResponse(AccountTransaction transaction) {
         AccountTransactionResponse response = new AccountTransactionResponse();
-        AccountTransaction accountTransaction = (AccountTransaction) transaction;
         response.setId(transaction.getId());
-        response.setOriginAccountNumber(accountTransaction.getOriginAccountNumber());
-        response.setDestinationAccountNumber(accountTransaction.getDestinationAccountNumber());
-        response.setType(accountTransaction.getType().toString());
-        response.setAmount(accountTransaction.getAmount());
-        response.setDate(accountTransaction.getDate());
-        response.setDescription(accountTransaction.getDescription());
+        response.setOriginAccountNumber(transaction.getOriginAccountNumber());
+        response.setDestinationAccountNumber(transaction.getDestinationAccountNumber());
+        response.setType(transaction.getType().toString());
+        response.setAmount(transaction.getAmount());
+        response.setDate(transaction.getDate());
+        response.setDescription(transaction.getDescription());
         return response;
     }
 
-    public Transaction getAccountTransactionEntity(AccountTransactionRequest request, AccountResponse accountResponse) {
+    public AccountTransaction getAccountTransactionEntity(AccountTransactionRequest request, AccountResponse accountResponse) {
         AccountTransaction accountTransaction = new AccountTransaction();
         accountTransaction.setOriginAccountNumber(request.getOriginAccountNumber());
         AccountTransactionType accountTransactionType = AccountTransactionType.valueOf(request.getType());
@@ -64,19 +63,18 @@ public class AccountTransactionMapper {
         return accountTransaction;
     }
 
-    public AccountPatchRequest getAccountPatchRequest(Transaction transaction, AccountResponse accountResponse, boolean isOrigin) {
+    public AccountPatchRequest getAccountPatchRequest(AccountTransaction transaction, AccountResponse accountResponse, boolean isOrigin) {
         AccountPatchRequest request = new AccountPatchRequest();
-        AccountTransaction accountTransaction = (AccountTransaction) transaction;
 
         TransactionStrategy strategy;
-        AccountTransactionType type = AccountTransactionType.valueOf(accountTransaction.getType().toString());
+        AccountTransactionType type = AccountTransactionType.valueOf(transaction.getType().toString());
 
         switch (type) {
             case DEPOSIT:
-                strategy = new DepositStrategy(isOrigin, accountTransaction.getCommissionFee());
+                strategy = new DepositStrategy(isOrigin, transaction.getCommissionFee());
                 break;
             case WITHDRAWAL:
-                strategy = new WithdrawalStrategy(isOrigin, accountTransaction.getCommissionFee());
+                strategy = new WithdrawalStrategy(isOrigin, transaction.getCommissionFee());
                 break;
             case TRANSFER:
                 strategy = new TransferStrategy(isOrigin);
@@ -85,7 +83,7 @@ public class AccountTransactionMapper {
                 throw new IllegalArgumentException("Invalid transaction type");
         }
 
-        BigDecimal amount = Optional.ofNullable(accountTransaction.getAmount()).orElse(BigDecimal.ZERO);
+        BigDecimal amount = Optional.ofNullable(transaction.getAmount()).orElse(BigDecimal.ZERO);
         BigDecimal currentBalance = Optional.ofNullable(accountResponse.getBalance()).orElse(BigDecimal.ZERO);
 
         request.setBalance(strategy.calculateBalance(currentBalance, amount));

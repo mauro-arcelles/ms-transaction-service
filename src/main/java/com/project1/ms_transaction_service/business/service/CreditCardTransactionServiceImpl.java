@@ -3,7 +3,7 @@ package com.project1.ms_transaction_service.business.service;
 import com.project1.ms_transaction_service.business.adapter.CreditCardService;
 import com.project1.ms_transaction_service.business.mapper.CreditCardTransactionMapper;
 import com.project1.ms_transaction_service.exception.BadRequestException;
-import com.project1.ms_transaction_service.exception.CreditCardCustomerMissmatchException;
+import com.project1.ms_transaction_service.exception.CreditCardCustomerMismatchException;
 import com.project1.ms_transaction_service.model.CreditCardPatchRequest;
 import com.project1.ms_transaction_service.model.CreditCardResponse;
 import com.project1.ms_transaction_service.model.CreditCardUsageTransactionRequest;
@@ -47,14 +47,14 @@ public class CreditCardTransactionServiceImpl implements CreditCardTransactionSe
      *
      * @param request The transaction request containing card and customer details
      * @return Tuple of request and card response if valid
-     * @throws CreditCardCustomerMissmatchException if card doesn't belong to customer
+     * @throws CreditCardCustomerMismatchException if card doesn't belong to customer
      */
     private Mono<Tuple2<CreditCardUsageTransactionRequest, CreditCardResponse>> validateAndGetCreditCard(CreditCardUsageTransactionRequest request) {
         return creditCardService.getCreditCardByCardNumber(request.getCreditCard())
                 .filter(card -> Optional.ofNullable(card.getCustomerId())
                         .map(id -> id.equals(request.getCustomerId()))
                         .orElse(false))
-                .switchIfEmpty(Mono.error(new CreditCardCustomerMissmatchException()))
+                .switchIfEmpty(Mono.error(new CreditCardCustomerMismatchException()))
                 .map(card -> Tuples.of(request, card));
     }
 

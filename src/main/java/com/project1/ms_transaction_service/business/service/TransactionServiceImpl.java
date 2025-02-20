@@ -6,10 +6,14 @@ import com.project1.ms_transaction_service.business.adapter.CreditService;
 import com.project1.ms_transaction_service.business.adapter.CustomerService;
 import com.project1.ms_transaction_service.business.mapper.TransactionMapper;
 import com.project1.ms_transaction_service.model.*;
+import com.project1.ms_transaction_service.model.entity.AccountTransaction;
+import com.project1.ms_transaction_service.repository.AccountTransactionRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+
+import java.time.LocalDateTime;
 
 @Service
 @Slf4j
@@ -29,6 +33,9 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Autowired
     private CustomerService customerService;
+
+    @Autowired
+    private AccountTransactionRepository accountTransactionRepository;
 
     @Override
     public Mono<CustomerProductsResponse> getAllCustomerProductsByDni(String dni) {
@@ -88,7 +95,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public Mono<CustomerProductsAverageBalance> getAllCustomerProductsAvgBalanceCustomerId(String customerId) {
+    public Mono<CustomerProductsAverageBalanceResponse> getAllCustomerProductsAvgBalanceCustomerId(String customerId) {
         return customerService.getCustomerById(customerId)
                 .flatMap(customerResponse ->
                         Mono.zip(
@@ -104,5 +111,12 @@ public class TransactionServiceImpl implements TransactionService {
                                 )
                         )
                 );
+    }
+
+    @Override
+    public Mono<ProductsCommissionResponse> getProductsCommissionByRange(LocalDateTime startDate, LocalDateTime endDate) {
+        return accountTransactionRepository.findAllByDateBetween(startDate, endDate)
+                .collectList()
+                .map(transactionMapper::getProductsCommissionResponse);
     }
 }

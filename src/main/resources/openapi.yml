@@ -121,7 +121,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CustomerProductsAverageBalance'
+                $ref: '#/components/schemas/CustomerProductsAverageBalanceResponse'
         '404':
           description: Customer not found
           content:
@@ -164,6 +164,37 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CustomerProductsResponse'
+
+  /transactions/products/commissions/range:
+    get:
+      summary: Get all the products commission between a date range
+      operationId: getAllProductsCommissionRange
+      parameters:
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: List of all products commission between a date range
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductsCommissionResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseBase'
 
 components:
   schemas:
@@ -399,7 +430,7 @@ components:
           type: string
 
     # queries
-    CustomerProductsAverageBalance:
+    CustomerProductsAverageBalanceResponse:
       type: object
       properties:
         customer:
@@ -431,3 +462,21 @@ components:
                 type: string
               averageBalance:
                 type: number
+
+    ProductsCommissionResponse:
+      type: object
+      properties:
+        commissions:
+          type: object
+          properties:
+            accounts:
+              type: array
+              items:
+                type: object
+                properties:
+                  accountNumber:
+                    type: string
+                  totalCommissionFee:
+                    type: number
+            totalAccountsCommissionFee:
+              type: number

@@ -6,7 +6,10 @@ import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 
+import java.time.LocalDateTime;
+
 @Repository
 public interface AccountTransactionRepository extends ReactiveMongoRepository<AccountTransaction, String> {
-    Flux<Transaction> findAllByDestinationAccountNumber(String accountNumber);
+    Flux<AccountTransaction> findAllByDestinationAccountNumber(String accountNumber);
+    Flux<AccountTransaction> findAllByDateBetween(LocalDateTime startDate, LocalDateTime endDate);
 }

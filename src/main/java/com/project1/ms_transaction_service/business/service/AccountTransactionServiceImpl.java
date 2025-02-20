@@ -227,11 +227,11 @@ public class AccountTransactionServiceImpl implements AccountTransactionService 
      * @param req      Transaction request details
      * @return Mono<Transaction> with processed transaction
      */
-    private Mono<Transaction> processTransaction(Tuple2<AccountResponse, Optional<AccountResponse>> accounts, AccountTransactionRequest req) {
+    private Mono<AccountTransaction> processTransaction(Tuple2<AccountResponse, Optional<AccountResponse>> accounts, AccountTransactionRequest req) {
         AccountResponse originAccount = accounts.getT1();
-        Transaction transaction = accountTransactionMapper.getAccountTransactionEntity(req, originAccount);
+        AccountTransaction transaction = accountTransactionMapper.getAccountTransactionEntity(req, originAccount);
 
-        return transactionRepository.save(transaction)
+        return accountTransactionRepository.save(transaction)
                 .flatMap(savedTransaction -> updateAccountBalance(originAccount, savedTransaction, true))
                 .flatMap(savedTransaction -> {
                     if (AccountTransactionType.TRANSFER.toString().equals(req.getType())) {
@@ -254,7 +254,7 @@ public class AccountTransactionServiceImpl implements AccountTransactionService 
      * @param isOrigin    Whether this is the origin account in a transfer
      * @return Mono containing the transaction
      */
-    private Mono<Transaction> updateAccountBalance(AccountResponse account, Transaction transaction, boolean isOrigin) {
+    private Mono<AccountTransaction> updateAccountBalance(AccountResponse account, AccountTransaction transaction, boolean isOrigin) {
         return accountService.updateAccount(
                         account.getId(),
                         accountTransactionMapper.getAccountPatchRequest(transaction, account, isOrigin))

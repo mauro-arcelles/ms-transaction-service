@@ -14,6 +14,9 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 @Component
 public class TransactionApiDelegateImpl implements TransactionsApiDelegate {
 
@@ -66,7 +69,12 @@ public class TransactionApiDelegateImpl implements TransactionsApiDelegate {
     }
 
     @Override
-    public Mono<ResponseEntity<CustomerProductsAverageBalance>> getAllCustomerProductsAvgBalanceByCustomerId(String customerId, ServerWebExchange exchange) {
+    public Mono<ResponseEntity<CustomerProductsAverageBalanceResponse>> getAllCustomerProductsAvgBalanceByCustomerId(String customerId, ServerWebExchange exchange) {
         return transactionService.getAllCustomerProductsAvgBalanceCustomerId(customerId).map(ResponseEntity::ok);
+    }
+
+    @Override
+    public Mono<ResponseEntity<ProductsCommissionResponse>> getAllProductsCommissionRange(LocalDateTime startDate, LocalDateTime endDate, ServerWebExchange exchange) {
+        return transactionService.getProductsCommissionByRange(startDate, endDate).map(ResponseEntity::ok);
     }
 }
