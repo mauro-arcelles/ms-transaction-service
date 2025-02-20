@@ -7,5 +7,6 @@ import reactor.core.publisher.Mono;
 
 public interface AccountTransactionService {
     Mono<AccountTransactionResponse> createAccountTransaction(Mono<AccountTransactionRequest> request);
+
     Flux<AccountTransactionResponse> getTransactionsByAccountNumber(String accountNumber);
 }

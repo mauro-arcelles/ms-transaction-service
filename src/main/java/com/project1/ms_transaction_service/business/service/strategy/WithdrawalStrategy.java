@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 
 public class WithdrawalStrategy implements TransactionStrategy {
     private final BigDecimal commissionFee;
+
     private final boolean isOrigin;
 
     public WithdrawalStrategy(boolean isOrigin, BigDecimal commissionFee) {
@@ -18,5 +19,8 @@ public class WithdrawalStrategy implements TransactionStrategy {
         }
         return current.subtract(finalAmount);
     }
-    public boolean updateMovements() { return true; }
+
+    public boolean updateMovements() {
+        return true;
+    }
 }

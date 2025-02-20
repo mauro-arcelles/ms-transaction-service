@@ -17,7 +17,10 @@ import java.math.BigDecimal;
 @TypeAlias("creditCardTransaction")
 public class CreditCardTransaction extends Transaction {
     private String creditCard;
+
     private String customerId;
+
     private BigDecimal amount;
+
     private String description;
 }

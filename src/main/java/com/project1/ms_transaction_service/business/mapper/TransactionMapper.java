@@ -28,48 +28,48 @@ public class TransactionMapper {
     }
 
     public CustomerProductsAverageBalanceResponse getCustomerProductsAvgBalanceResponse(CustomerResponse customer,
-                                                                                List<AccountResponse> accounts,
-                                                                                List<CreditCardResponse> creditCards,
-                                                                                List<CreditResponse> credits) {
+                                                                                        List<AccountResponse> accounts,
+                                                                                        List<CreditCardResponse> creditCards,
+                                                                                        List<CreditResponse> credits) {
         CustomerProductsAverageBalanceResponse response = new CustomerProductsAverageBalanceResponse();
         response.setCustomer(customer);
 
         List<CustomerProductsAverageBalanceResponseAccountsInner> accountsAvgBalances = accounts.stream()
-                .map(accountResponse -> {
-                    CustomerProductsAverageBalanceResponseAccountsInner accountAvgBalance = new CustomerProductsAverageBalanceResponseAccountsInner();
-                    accountAvgBalance.setAccountNumber(accountResponse.getAccountNumber());
-                    BigDecimal balance = Optional.ofNullable(accountResponse.getBalance())
-                            .orElse(BigDecimal.ZERO);
-                    accountAvgBalance.setAverageBalance(calculateAvgDailyBalance(balance));
-                    return accountAvgBalance;
-                })
-                .collect(Collectors.toList());
+            .map(accountResponse -> {
+                CustomerProductsAverageBalanceResponseAccountsInner accountAvgBalance = new CustomerProductsAverageBalanceResponseAccountsInner();
+                accountAvgBalance.setAccountNumber(accountResponse.getAccountNumber());
+                BigDecimal balance = Optional.ofNullable(accountResponse.getBalance())
+                    .orElse(BigDecimal.ZERO);
+                accountAvgBalance.setAverageBalance(calculateAvgDailyBalance(balance));
+                return accountAvgBalance;
+            })
+            .collect(Collectors.toList());
         response.setAccounts(accountsAvgBalances);
 
         List<CustomerProductsAverageBalanceResponseCreditCardsInner> creditCardsAvgBalances = creditCards.stream()
-                .map(creditCardResponse -> {
-                    CustomerProductsAverageBalanceResponseCreditCardsInner creditCardAvgBalance = new CustomerProductsAverageBalanceResponseCreditCardsInner();
-                    BigDecimal usedAmount = Optional.ofNullable(creditCardResponse.getUsedAmount())
-                            .orElse(BigDecimal.ZERO);
-                    BigDecimal creditLimit = Optional.ofNullable(creditCardResponse.getCreditLimit())
-                                    .orElse(BigDecimal.ZERO);
+            .map(creditCardResponse -> {
+                CustomerProductsAverageBalanceResponseCreditCardsInner creditCardAvgBalance = new CustomerProductsAverageBalanceResponseCreditCardsInner();
+                BigDecimal usedAmount = Optional.ofNullable(creditCardResponse.getUsedAmount())
+                    .orElse(BigDecimal.ZERO);
+                BigDecimal creditLimit = Optional.ofNullable(creditCardResponse.getCreditLimit())
+                    .orElse(BigDecimal.ZERO);
 
-                    creditCardAvgBalance.setAverageBalance(calculateAvgDailyBalance(creditLimit.subtract(usedAmount)));
-                    creditCardAvgBalance.setCardNumber(creditCardResponse.getCardNumber());
+                creditCardAvgBalance.setAverageBalance(calculateAvgDailyBalance(creditLimit.subtract(usedAmount)));
+                creditCardAvgBalance.setCardNumber(creditCardResponse.getCardNumber());
 
-                    return creditCardAvgBalance;
-                }).collect(Collectors.toList());
+                return creditCardAvgBalance;
+            }).collect(Collectors.toList());
         response.setCreditCards(creditCardsAvgBalances);
 
         List<CustomerProductsAverageBalanceResponseCreditsInner> creditsAvgBalances = credits.stream()
-                .map(creditResponse -> {
-                    CustomerProductsAverageBalanceResponseCreditsInner creditAvgBalance = new CustomerProductsAverageBalanceResponseCreditsInner();
-                    creditAvgBalance.setCreditIdentifier(creditResponse.getIdentifier());
-                    BigDecimal balance = Optional.ofNullable(creditResponse.getAmountPaid())
-                            .orElse(BigDecimal.ZERO);
-                    creditAvgBalance.setAverageBalance(calculateAvgDailyBalance(balance));
-                    return creditAvgBalance;
-                }).collect(Collectors.toList());
+            .map(creditResponse -> {
+                CustomerProductsAverageBalanceResponseCreditsInner creditAvgBalance = new CustomerProductsAverageBalanceResponseCreditsInner();
+                creditAvgBalance.setCreditIdentifier(creditResponse.getIdentifier());
+                BigDecimal balance = Optional.ofNullable(creditResponse.getAmountPaid())
+                    .orElse(BigDecimal.ZERO);
+                creditAvgBalance.setAverageBalance(calculateAvgDailyBalance(balance));
+                return creditAvgBalance;
+            }).collect(Collectors.toList());
         response.setCredits(creditsAvgBalances);
 
         return response;
@@ -85,18 +85,18 @@ public class TransactionMapper {
         ProductsCommissionResponseCommissions commissions = new ProductsCommissionResponseCommissions();
 
         List<ProductsCommissionResponseCommissionsAccountsInner> accountsCommissions = transactions.stream()
-                .filter(accountTransaction -> accountTransaction.getCommissionFee() != null)
-                .map(accountTransaction -> {
-                    ProductsCommissionResponseCommissionsAccountsInner accountCommissions = new ProductsCommissionResponseCommissionsAccountsInner();
-                    accountCommissions.setAccountNumber(accountTransaction.getOriginAccountNumber());
-                    accountCommissions.setTotalCommissionFee(accountTransaction.getCommissionFee());
-                    return accountCommissions;
-                }).collect(Collectors.toList());
+            .filter(accountTransaction -> accountTransaction.getCommissionFee() != null)
+            .map(accountTransaction -> {
+                ProductsCommissionResponseCommissionsAccountsInner accountCommissions = new ProductsCommissionResponseCommissionsAccountsInner();
+                accountCommissions.setAccountNumber(accountTransaction.getOriginAccountNumber());
+                accountCommissions.setTotalCommissionFee(accountTransaction.getCommissionFee());
+                return accountCommissions;
+            }).collect(Collectors.toList());
         commissions.setAccounts(accountsCommissions);
 
         BigDecimal totalAccountCommissions = accountsCommissions.stream()
-                .map(ProductsCommissionResponseCommissionsAccountsInner::getTotalCommissionFee)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+            .map(ProductsCommissionResponseCommissionsAccountsInner::getTotalCommissionFee)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         commissions.setTotalAccountsCommissionFee(totalAccountCommissions);
         response.setCommissions(commissions);

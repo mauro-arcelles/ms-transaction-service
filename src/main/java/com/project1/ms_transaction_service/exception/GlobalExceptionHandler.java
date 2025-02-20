@@ -26,12 +26,12 @@ public class GlobalExceptionHandler {
     public Mono<ResponseEntity<Map<String, List<String>>>> handleValidationErrors(WebExchangeBindException ex) {
         log.error("error", ex);
         Map<String, List<String>> errors = ex.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .collect(Collectors.groupingBy(
-                        FieldError::getField,
-                        Collectors.mapping(FieldError::getDefaultMessage, Collectors.toList())
-                ));
+            .getFieldErrors()
+            .stream()
+            .collect(Collectors.groupingBy(
+                FieldError::getField,
+                Collectors.mapping(FieldError::getDefaultMessage, Collectors.toList())
+            ));
         return Mono.just(ResponseEntity.badRequest().body(errors));
     }
 
@@ -39,7 +39,7 @@ public class GlobalExceptionHandler {
     public Mono<ResponseEntity<String>> handleGenericError(Exception ex) {
         log.error("error", ex);
         return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Internal Server Error"));
+            .body("Internal Server Error"));
     }
 
     @ExceptionHandler(BadRequestException.class)
@@ -48,7 +48,7 @@ public class GlobalExceptionHandler {
         ResponseBase responseBase = new ResponseBase();
         responseBase.setMessage(ex.getMessage());
         return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(responseBase));
+            .body(responseBase));
     }
 
     @ExceptionHandler(CreditCardCustomerMismatchException.class)
@@ -57,7 +57,7 @@ public class GlobalExceptionHandler {
         ResponseBase responseBase = new ResponseBase();
         responseBase.setMessage(ex.getMessage());
         return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(responseBase));
+            .body(responseBase));
     }
 
     @ExceptionHandler(ServerWebInputException.class)

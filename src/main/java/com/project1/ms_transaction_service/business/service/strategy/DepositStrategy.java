@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 
 public class DepositStrategy implements TransactionStrategy {
     private final BigDecimal commissionFee;
+
     private final boolean isOrigin;
 
     public DepositStrategy(boolean isOrigin, BigDecimal commissionFee) {
@@ -18,5 +19,8 @@ public class DepositStrategy implements TransactionStrategy {
         }
         return current.add(finalAmount);
     }
-    public boolean updateMovements() { return true; }
+
+    public boolean updateMovements() {
+        return true;
+    }
 }

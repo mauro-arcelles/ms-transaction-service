@@ -42,17 +42,17 @@ public class AccountTransactionServiceImpl implements AccountTransactionService 
     @Override
     public Mono<AccountTransactionResponse> createAccountTransaction(Mono<AccountTransactionRequest> request) {
         return request
-                .flatMap(this::validateTransactionType)
-                .flatMap(this::validateTransactionRequest)
-                .flatMap(req ->
-                        getOriginAndDestinationAccounts(req)
-                                .flatMap(tuple -> validateAccounts(tuple, req))
-                                .flatMap(this::validateAccountMonthlyMovements)
-                                .flatMap(tuple -> validateAccountBalance(tuple, req))
-                                .flatMap(tuple -> processTransaction(tuple, req)))
-                .map(accountTransactionMapper::getAccountTransactionResponse)
-                .doOnSuccess(t -> log.info("Transaction created: {}", t.getId()))
-                .doOnError(e -> log.error("Error creating transaction", e));
+            .flatMap(this::validateTransactionType)
+            .flatMap(this::validateTransactionRequest)
+            .flatMap(req ->
+                getOriginAndDestinationAccounts(req)
+                    .flatMap(tuple -> validateAccounts(tuple, req))
+                    .flatMap(this::validateAccountMonthlyMovements)
+                    .flatMap(tuple -> validateAccountBalance(tuple, req))
+                    .flatMap(tuple -> processTransaction(tuple, req)))
+            .map(accountTransactionMapper::getAccountTransactionResponse)
+            .doOnSuccess(t -> log.info("Transaction created: {}", t.getId()))
+            .doOnError(e -> log.error("Error creating transaction", e));
     }
 
     /**
@@ -67,8 +67,8 @@ public class AccountTransactionServiceImpl implements AccountTransactionService 
             return Mono.just(req);
         } catch (IllegalArgumentException ex) {
             String result = Arrays.stream(AccountTransactionType.values())
-                    .map(Enum::name)
-                    .collect(Collectors.joining("|"));
+                .map(Enum::name)
+                .collect(Collectors.joining("|"));
             return Mono.error(new BadRequestException("Invalid transaction type. Should be one of: " + result));
         }
     }
@@ -100,7 +100,7 @@ public class AccountTransactionServiceImpl implements AccountTransactionService 
         Mono<Optional<AccountResponse>> destionationAccountMono = Mono.just(Optional.empty());
         if (request.getDestinationAccountNumber() != null) {
             destionationAccountMono = accountService.getAccountByAccountNumber(request.getDestinationAccountNumber())
-                    .map(Optional::ofNullable);
+                .map(Optional::ofNullable);
         }
         return Mono.zip(originAccountMono, destionationAccountMono);
     }
@@ -114,10 +114,10 @@ public class AccountTransactionServiceImpl implements AccountTransactionService 
     @Override
     public Flux<AccountTransactionResponse> getTransactionsByAccountNumber(String accountNumber) {
         return accountService.getAccountByAccountNumber(accountNumber)
-                .flatMapMany(account ->
-                        accountTransactionRepository.findAllByDestinationAccountNumber(accountNumber)
-                                .map(accountTransactionMapper::getAccountTransactionResponse)
-                );
+            .flatMapMany(account ->
+                accountTransactionRepository.findAllByDestinationAccountNumber(accountNumber)
+                    .map(accountTransactionMapper::getAccountTransactionResponse)
+            );
     }
 
     /**
@@ -127,7 +127,8 @@ public class AccountTransactionServiceImpl implements AccountTransactionService 
      * @return Mono containing validated accounts tuple
      * @throws BadRequestException if either account is not in ACTIVE status
      */
-    private Mono<Tuple2<AccountResponse, Optional<AccountResponse>>> validateAccounts(Tuple2<AccountResponse, Optional<AccountResponse>> tuple, AccountTransactionRequest req) {
+    private Mono<Tuple2<AccountResponse, Optional<AccountResponse>>> validateAccounts(Tuple2<AccountResponse, Optional<AccountResponse>> tuple,
+                                                                                      AccountTransactionRequest req) {
         AccountResponse originAccount = tuple.getT1();
         Optional<AccountResponse> destinationAccountOptional = tuple.getT2();
         CustomerType originAccountCustomerType = CustomerType.valueOf(originAccount.getCustomerType());
@@ -204,7 +205,8 @@ public class AccountTransactionServiceImpl implements AccountTransactionService 
      * @return Mono containing validated accounts tuple
      * @throws BadRequestException if balance is insufficient
      */
-    private Mono<Tuple2<AccountResponse, Optional<AccountResponse>>> validateAccountBalance(Tuple2<AccountResponse, Optional<AccountResponse>> tuple, AccountTransactionRequest req) {
+    private Mono<Tuple2<AccountResponse, Optional<AccountResponse>>> validateAccountBalance(Tuple2<AccountResponse, Optional<AccountResponse>> tuple,
+                                                                                            AccountTransactionRequest req) {
         AccountResponse originAccount = tuple.getT1();
         AccountTransactionType accountTransactionType = AccountTransactionType.valueOf(req.getType());
 
@@ -232,18 +234,18 @@ public class AccountTransactionServiceImpl implements AccountTransactionService 
         AccountTransaction transaction = accountTransactionMapper.getAccountTransactionEntity(req, originAccount);
 
         return accountTransactionRepository.save(transaction)
-                .flatMap(savedTransaction -> updateAccountBalance(originAccount, savedTransaction, true))
-                .flatMap(savedTransaction -> {
-                    if (AccountTransactionType.TRANSFER.toString().equals(req.getType())) {
-                        Optional<AccountResponse> destinationAccountOptional = accounts.getT2();
-                        return destinationAccountOptional.map(destinationAccount ->
-                                        updateAccountBalance(destinationAccount, savedTransaction, false)
-                                )
-                                .orElseGet(() -> Mono.just(transaction));
-                    } else {
-                        return Mono.just(transaction);
-                    }
-                });
+            .flatMap(savedTransaction -> updateAccountBalance(originAccount, savedTransaction, true))
+            .flatMap(savedTransaction -> {
+                if (AccountTransactionType.TRANSFER.toString().equals(req.getType())) {
+                    Optional<AccountResponse> destinationAccountOptional = accounts.getT2();
+                    return destinationAccountOptional.map(destinationAccount ->
+                            updateAccountBalance(destinationAccount, savedTransaction, false)
+                        )
+                        .orElseGet(() -> Mono.just(transaction));
+                } else {
+                    return Mono.just(transaction);
+                }
+            });
     }
 
     /**
@@ -256,8 +258,8 @@ public class AccountTransactionServiceImpl implements AccountTransactionService 
      */
     private Mono<AccountTransaction> updateAccountBalance(AccountResponse account, AccountTransaction transaction, boolean isOrigin) {
         return accountService.updateAccount(
-                        account.getId(),
-                        accountTransactionMapper.getAccountPatchRequest(transaction, account, isOrigin))
-                .thenReturn(transaction);
+                account.getId(),
+                accountTransactionMapper.getAccountPatchRequest(transaction, account, isOrigin))
+            .thenReturn(transaction);
     }
 }

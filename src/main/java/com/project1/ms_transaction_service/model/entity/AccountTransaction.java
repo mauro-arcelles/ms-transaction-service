@@ -18,10 +18,16 @@ import java.time.LocalDateTime;
 @TypeAlias("accountTransaction")
 public class AccountTransaction extends Transaction {
     private String originAccountNumber;
+
     private String destinationAccountNumber;
+
     private AccountTransactionType type;
+
     private BigDecimal amount;
+
     private String description;
+
     private BigDecimal commissionFee;
+
     private BigDecimal commissionFeePercentage;
 }

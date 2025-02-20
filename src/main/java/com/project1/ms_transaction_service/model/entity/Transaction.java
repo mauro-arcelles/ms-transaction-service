@@ -19,5 +19,6 @@ import java.time.LocalDateTime;
 public class Transaction {
     @Id
     private String id;
+
     private LocalDateTime date;
 }

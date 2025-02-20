@@ -7,6 +7,8 @@ import reactor.core.publisher.Mono;
 
 public interface AccountService {
     Mono<AccountResponse> getAccountByAccountNumber(String accountNumber);
+
     Mono<AccountResponse> updateAccount(String id, AccountPatchRequest request);
+
     Flux<AccountResponse> getAccountsByCustomerId(String customerId);
 }

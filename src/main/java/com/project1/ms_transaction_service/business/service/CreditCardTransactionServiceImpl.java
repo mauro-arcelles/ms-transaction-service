@@ -36,10 +36,10 @@ public class CreditCardTransactionServiceImpl implements CreditCardTransactionSe
     @Override
     public Mono<CreditCardUsageTransactionResponse> createCreditCardUsageTransaction(Mono<CreditCardUsageTransactionRequest> request) {
         return request
-                .flatMap(this::validateAndGetCreditCard)
-                .flatMap(this::validateCreditCardLimit)
-                .flatMap(this::processTransaction)
-                .map(creditCardTransactionMapper::getCreditCardTransactionResponse);
+            .flatMap(this::validateAndGetCreditCard)
+            .flatMap(this::validateCreditCardLimit)
+            .flatMap(this::processTransaction)
+            .map(creditCardTransactionMapper::getCreditCardTransactionResponse);
     }
 
     /**
@@ -51,11 +51,11 @@ public class CreditCardTransactionServiceImpl implements CreditCardTransactionSe
      */
     private Mono<Tuple2<CreditCardUsageTransactionRequest, CreditCardResponse>> validateAndGetCreditCard(CreditCardUsageTransactionRequest request) {
         return creditCardService.getCreditCardByCardNumber(request.getCreditCard())
-                .filter(card -> Optional.ofNullable(card.getCustomerId())
-                        .map(id -> id.equals(request.getCustomerId()))
-                        .orElse(false))
-                .switchIfEmpty(Mono.error(new CreditCardCustomerMismatchException()))
-                .map(card -> Tuples.of(request, card));
+            .filter(card -> Optional.ofNullable(card.getCustomerId())
+                .map(id -> id.equals(request.getCustomerId()))
+                .orElse(false))
+            .switchIfEmpty(Mono.error(new CreditCardCustomerMismatchException()))
+            .map(card -> Tuples.of(request, card));
     }
 
     /**
@@ -65,7 +65,8 @@ public class CreditCardTransactionServiceImpl implements CreditCardTransactionSe
      * @return The input tuple if validation passes
      * @throws BadRequestException if insufficient funds available
      */
-    private Mono<Tuple2<CreditCardUsageTransactionRequest, CreditCardResponse>> validateCreditCardLimit(Tuple2<CreditCardUsageTransactionRequest, CreditCardResponse> tuple) {
+    private Mono<Tuple2<CreditCardUsageTransactionRequest, CreditCardResponse>> validateCreditCardLimit(
+        Tuple2<CreditCardUsageTransactionRequest, CreditCardResponse> tuple) {
         CreditCardUsageTransactionRequest request = tuple.getT1();
         CreditCardResponse card = tuple.getT2();
 
@@ -90,14 +91,14 @@ public class CreditCardTransactionServiceImpl implements CreditCardTransactionSe
         CreditCardResponse card = tuple.getT2();
 
         return creditCardTransactionRepository.save(creditCardTransactionMapper.getCreditCardTransactionEntity(request))
-                .flatMap(transaction -> updateCreditCardAmount(card, request.getAmount())
-                        .thenReturn(transaction));
+            .flatMap(transaction -> updateCreditCardAmount(card, request.getAmount())
+                .thenReturn(transaction));
     }
 
     /**
      * Updates the used amount of a credit card by adding the specified amount.
      *
-     * @param card The credit card response object containing current card information
+     * @param card   The credit card response object containing current card information
      * @param amount The amount to add to the card's used amount
      * @return A Mono containing the updated credit card response
      */

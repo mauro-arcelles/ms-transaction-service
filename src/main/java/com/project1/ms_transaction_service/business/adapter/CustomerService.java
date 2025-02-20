@@ -5,6 +5,8 @@ import reactor.core.publisher.Mono;
 
 public interface CustomerService {
     Mono<CustomerResponse> getCustomerByDni(String dni);
+
     Mono<CustomerResponse> getCustomerByRuc(String ruc);
+
     Mono<CustomerResponse> getCustomerById(String id);
 }
