@@ -115,7 +115,7 @@ public class AccountTransactionServiceImpl implements AccountTransactionService 
     public Flux<AccountTransactionResponse> getTransactionsByAccountNumber(String accountNumber) {
         return accountService.getAccountByAccountNumber(accountNumber)
             .flatMapMany(account ->
-                accountTransactionRepository.findAllByDestinationAccountNumber(accountNumber)
+                accountTransactionRepository.findAllByOriginAccountNumber(accountNumber)
                     .map(accountTransactionMapper::getAccountTransactionResponse)
             );
     }

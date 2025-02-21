@@ -11,6 +11,7 @@ import com.project1.ms_transaction_service.repository.CreditTransactionRepositor
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
@@ -38,6 +39,15 @@ public class CreditTransactionServiceImpl implements CreditTransactionService {
                 .flatMap(this::saveCreditTransaction)
                 .flatMap(this::updateCreditAmount)
                 .map(creditTransactionMapper::getCreditPaymentTransactionResponse);
+    }
+
+    @Override
+    public Flux<CreditPaymentTransactionResponse> getCreditTransactionsByCreditId(String creditId) {
+        return creditService.getCreditById(creditId)
+            .flatMapMany(account ->
+                creditTransactionRepository.findAllByCreditId(creditId)
+                    .map(creditTransactionMapper::getCreditPaymentTransactionResponse)
+            );
     }
 
     /**

@@ -23,4 +23,6 @@ public class CreditCardTransaction extends Transaction {
     private BigDecimal amount;
 
     private String description;
+
+    private CreditCardTransactionType type;
 }

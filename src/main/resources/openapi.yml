@@ -27,8 +27,8 @@ paths:
 
   /transactions/account/by-account/{accountNumber}:
     get:
-      summary: Get transactions by account
-      operationId: getTransactionsByAccount
+      summary: Get account transactions by account
+      operationId: getAccountTransactionsByAccountNumber
       parameters:
         - name: accountNumber
           in: path
@@ -45,6 +45,46 @@ paths:
                 items:
                   $ref: '#/components/schemas/AccountTransactionResponse'
 
+  /transactions/credit-card/by-card-number/{creditCardNumber}:
+    get:
+      summary: Get credit card transactions by credit card number
+      operationId: getCreditCardTransactionsByCreditCardNumber
+      parameters:
+        - name: creditCardNumber
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of transactions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CreditCardTransactionResponse'
+
+  /transactions/credit/by-credit/{creditId}:
+    get:
+      summary: Get credit transactions by credit id
+      operationId: getCreditTransactionsByCreditId
+      parameters:
+        - name: creditId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of transactions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CreditPaymentTransactionResponse'
+
   /transactions/credit-card/usage:
     post:
       summary: Create an usage transaction for credit cards
@@ -54,14 +94,32 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreditCardUsageTransactionRequest'
+              $ref: '#/components/schemas/CreditCardTransactionRequest'
       responses:
         '201':
           description: Credit card transaction created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreditCardUsageTransactionResponse'
+                $ref: '#/components/schemas/CreditCardTransactionResponse'
+
+  /transactions/credit-card/payment:
+    post:
+      summary: Create a payment transaction for credit cards
+      operationId: createCreditCardPaymentTransaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreditCardTransactionRequest'
+      responses:
+        '201':
+          description: Credit card transaction created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditCardTransactionResponse'
 
   /transactions/credit/payment:
     post:
@@ -239,7 +297,7 @@ components:
         - type
         - amount
 
-    CreditCardUsageTransactionRequest:
+    CreditCardTransactionRequest:
       type: object
       properties:
         creditCard:
@@ -255,7 +313,7 @@ components:
         - customerId
         - amount
 
-    CreditCardUsageTransactionResponse:
+    CreditCardTransactionResponse:
       type: object
       properties:
         creditCard:
@@ -266,6 +324,11 @@ components:
           type: number
         description:
           type: string
+        type:
+          type: string
+        date:
+          type: string
+          format: date-time
 
     CreditPaymentTransactionRequest:
       type: object
@@ -282,6 +345,9 @@ components:
       properties:
         creditId:
           type: string
+        date:
+          type: string
+          format: date-time
 
     CreditPatchRequest:
       type: object

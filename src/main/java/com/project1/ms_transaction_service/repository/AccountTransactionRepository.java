@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 @Repository
 public interface AccountTransactionRepository extends ReactiveMongoRepository<AccountTransaction, String> {
-    Flux<AccountTransaction> findAllByDestinationAccountNumber(String accountNumber);
+    Flux<AccountTransaction> findAllByOriginAccountNumber(String accountNumber);
 
     Flux<AccountTransaction> findAllByDateBetween(LocalDateTime startDate, LocalDateTime endDate);
 }
