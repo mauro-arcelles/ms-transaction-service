@@ -60,4 +60,18 @@ public class CreditCardServiceImpl implements CreditCardService {
                 .bodyToFlux(CreditCardResponse.class);
     }
 
+    @Override
+    public Mono<CreditCardResponse> getCreditCardById(String creditCardId) {
+        return creditWebClient.get()
+                .uri("/credit-card/{creditCardId}", creditCardId)
+                .retrieve()
+                .onStatus(HttpStatus::is4xxClientError, response ->
+                        response.bodyToMono(ResponseBase.class)
+                                .flatMap(error ->
+                                        Mono.error(new BadRequestException(error.getMessage()))
+                                )
+                )
+                .bodyToMono(CreditCardResponse.class);
+    }
+
 }

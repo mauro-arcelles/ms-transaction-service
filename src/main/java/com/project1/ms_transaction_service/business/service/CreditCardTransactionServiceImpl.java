@@ -65,7 +65,7 @@ public class CreditCardTransactionServiceImpl implements CreditCardTransactionSe
      * @throws CreditCardCustomerMismatchException if card doesn't belong to customer
      */
     private Mono<Tuple2<CreditCardTransactionRequest, CreditCardResponse>> validateAndGetCreditCard(CreditCardTransactionRequest request) {
-        return creditCardService.getCreditCardByCardNumber(request.getCreditCard())
+        return creditCardService.getCreditCardById(request.getCreditCard())
             .filter(card -> Optional.ofNullable(card.getCustomerId())
                 .map(id -> id.equals(request.getCustomerId()))
                 .orElse(false))
