@@ -51,6 +51,15 @@ public class GlobalExceptionHandler {
             .body(responseBase));
     }
 
+    @ExceptionHandler(NotFoundException.class)
+    public Mono<ResponseEntity<ResponseBase>> handleNotFoundException(Exception ex) {
+        log.error("error", ex);
+        ResponseBase responseBase = new ResponseBase();
+        responseBase.setMessage(ex.getMessage());
+        return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body(responseBase));
+    }
+
     @ExceptionHandler(CreditCardCustomerMismatchException.class)
     public Mono<ResponseEntity<ResponseBase>> handleCreditCardCustomerMismatchException(Exception ex) {
         log.error("error", ex);

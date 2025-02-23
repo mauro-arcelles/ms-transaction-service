@@ -1,10 +1,7 @@
 package com.project1.ms_transaction_service;
 
 import com.project1.ms_transaction_service.api.TransactionsApiDelegate;
-import com.project1.ms_transaction_service.business.service.AccountTransactionService;
-import com.project1.ms_transaction_service.business.service.CreditCardTransactionService;
-import com.project1.ms_transaction_service.business.service.CreditTransactionService;
-import com.project1.ms_transaction_service.business.service.TransactionService;
+import com.project1.ms_transaction_service.business.service.*;
 import com.project1.ms_transaction_service.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -30,6 +27,9 @@ public class TransactionApiDelegateImpl implements TransactionsApiDelegate {
 
     @Autowired
     private CreditTransactionService creditTransactionService;
+
+    @Autowired
+    private DebitCardTransactionService debitCardTransactionService;
 
     @Override
     public Mono<ResponseEntity<Flux<AccountTransactionResponse>>> getAccountTransactionsByAccountNumber(String accountNumber, ServerWebExchange exchange) {
@@ -96,5 +96,12 @@ public class TransactionApiDelegateImpl implements TransactionsApiDelegate {
                                                                                           ServerWebExchange exchange) {
         return transactionService.getProductsCommissionByRange(startDate, endDate)
             .map(ResponseEntity::ok);
+    }
+
+    @Override
+    public Mono<ResponseEntity<DebitCardTransactionResponse>> createDebitCardTransaction(Mono<DebitCardTransactionRequest> debitCardTransactionRequest,
+                                                                                         ServerWebExchange exchange) {
+        return debitCardTransactionService.createDebitCardTransaction(debitCardTransactionRequest)
+            .map(ResponseEntity.status(HttpStatus.CREATED)::body);
     }
 }

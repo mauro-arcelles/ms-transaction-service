@@ -22,43 +22,57 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public Mono<AccountResponse> getAccountByAccountNumber(String accountNumber) {
         return accountWebClient.get()
-                .uri("/by-account-number/{accountNumber}", accountNumber)
-                .retrieve()
-                .onStatus(HttpStatus::is4xxClientError, response ->
-                        response.bodyToMono(ResponseBase.class)
-                                .flatMap(error ->
-                                        Mono.error(new BadRequestException(error.getMessage()))
-                                )
-                )
-                .bodyToMono(AccountResponse.class);
+            .uri("/by-account-number/{accountNumber}", accountNumber)
+            .retrieve()
+            .onStatus(HttpStatus::is4xxClientError, response ->
+                response.bodyToMono(ResponseBase.class)
+                    .flatMap(error ->
+                        Mono.error(new BadRequestException(error.getMessage()))
+                    )
+            )
+            .bodyToMono(AccountResponse.class);
     }
 
     @Override
     public Mono<AccountResponse> updateAccount(String id, AccountPatchRequest request) {
         return accountWebClient.patch()
-                .uri("/{id}", id)
-                .body(Mono.just(request), AccountPatchRequest.class)
-                .retrieve()
-                .onStatus(HttpStatus::is4xxClientError, response ->
-                        response.bodyToMono(ResponseBase.class)
-                                .flatMap(error ->
-                                        Mono.error(new BadRequestException(error.getMessage()))
-                                )
-                )
-                .bodyToMono(AccountResponse.class);
+            .uri("/{id}", id)
+            .body(Mono.just(request), AccountPatchRequest.class)
+            .retrieve()
+            .onStatus(HttpStatus::is4xxClientError, response ->
+                response.bodyToMono(ResponseBase.class)
+                    .flatMap(error ->
+                        Mono.error(new BadRequestException(error.getMessage()))
+                    )
+            )
+            .bodyToMono(AccountResponse.class);
     }
 
     @Override
     public Flux<AccountResponse> getAccountsByCustomerId(String customerId) {
         return accountWebClient.get()
-                .uri("/by-customer/{customerId}", customerId)
-                .retrieve()
-                .onStatus(HttpStatus::is4xxClientError, response ->
-                        response.bodyToMono(ResponseBase.class)
-                                .flatMap(error ->
-                                        Mono.error(new BadRequestException(error.getMessage()))
-                                )
-                )
-                .bodyToFlux(AccountResponse.class);
+            .uri("/by-customer/{customerId}", customerId)
+            .retrieve()
+            .onStatus(HttpStatus::is4xxClientError, response ->
+                response.bodyToMono(ResponseBase.class)
+                    .flatMap(error ->
+                        Mono.error(new BadRequestException(error.getMessage()))
+                    )
+            )
+            .bodyToFlux(AccountResponse.class);
+    }
+
+    @Override
+    public Mono<AccountResponse> getAccountById(String accountId) {
+        return accountWebClient.get()
+            .uri("/{accountId}", accountId)
+            .retrieve()
+            .onStatus(HttpStatus::is4xxClientError, response ->
+                response.bodyToMono(ResponseBase.class)
+                    .flatMap(error ->
+                        Mono.error(new BadRequestException(error.getMessage()))
+                    )
+            )
+            .bodyToMono(AccountResponse.class);
     }
 }

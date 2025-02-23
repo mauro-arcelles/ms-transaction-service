@@ -103,6 +103,24 @@ paths:
               schema:
                 $ref: '#/components/schemas/CreditCardTransactionResponse'
 
+  /transactions/debit-card:
+    post:
+      summary: Create a transaction for debit cards
+      operationId: createDebitCardTransaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DebitCardTransactionRequest'
+      responses:
+        '201':
+          description: Debit card transaction created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DebitCardTransactionResponse'
+
   /transactions/credit/payment:
     post:
       summary: Create a payment transaction for credit
@@ -316,6 +334,61 @@ components:
         date:
           type: string
           format: date-time
+
+    DebitCardTransactionRequest:
+      type: object
+      properties:
+        debitCardId:
+          type: string
+        amount:
+          type: number
+          minimum: 1
+        description:
+          type: string
+        type:
+          type: string
+          x-field-extra-annotation: '@com.project1.ms_transaction_service.validation.EnumNamePattern(regexp = "PAYMENT|WITHDRAWAL")'
+      required:
+        - debitCardId
+        - amount
+        - type
+
+    DebitCardTransactionResponse:
+      type: object
+      properties:
+        debitCardId:
+          type: string
+        customerId:
+          type: string
+        amount:
+          type: number
+        description:
+          type: string
+        type:
+          type: string
+        date:
+          type: string
+          format: date-time
+
+    DebitCardResponse:
+      type: object
+      properties:
+        cardNumber:
+          type: string
+        customerId:
+          type: string
+        associations:
+          type: array
+          items:
+            $ref: '#/components/schemas/DebitCardAssociation'
+
+    DebitCardAssociation:
+      type: object
+      properties:
+        accountId:
+          type: string
+        position:
+          type: integer
 
     CreditPaymentTransactionRequest:
       type: object

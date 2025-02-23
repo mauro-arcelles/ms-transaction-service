@@ -1,6 +1,7 @@
 package com.project1.ms_transaction_service.business.adapter;
 
 import com.project1.ms_transaction_service.exception.BadRequestException;
+import com.project1.ms_transaction_service.exception.NotFoundException;
 import com.project1.ms_transaction_service.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -20,58 +21,64 @@ public class CreditCardServiceImpl implements CreditCardService {
     @Override
     public Mono<CreditCardResponse> getCreditCardByCardNumber(String cardNumber) {
         return creditWebClient.get()
-                .uri("/credit-card/by-card-number/{cardNumber}", cardNumber)
-                .retrieve()
-                .onStatus(HttpStatus::is4xxClientError, response ->
-                        response.bodyToMono(ResponseBase.class)
-                                .flatMap(error ->
-                                        Mono.error(new BadRequestException(error.getMessage()))
-                                )
-                )
-                .bodyToMono(CreditCardResponse.class);
+            .uri("/credit-card/by-card-number/{cardNumber}", cardNumber)
+            .retrieve()
+            .onStatus(HttpStatus::is4xxClientError, response ->
+                response.bodyToMono(ResponseBase.class)
+                    .flatMap(error -> Mono.error(
+                        response.statusCode().equals(HttpStatus.NOT_FOUND)
+                            ? new NotFoundException(error.getMessage())
+                            : new BadRequestException(error.getMessage())
+                    ))
+            )
+            .bodyToMono(CreditCardResponse.class);
     }
 
     @Override
     public Mono<CreditCardResponse> updateCreditCard(String id, CreditCardPatchRequest request) {
         return creditWebClient.patch()
-                .uri("/credit-card/{id}", id)
-                .body(Mono.just(request), CreditCardPatchRequest.class)
-                .retrieve()
-                .onStatus(HttpStatus::is4xxClientError, response ->
-                        response.bodyToMono(ResponseBase.class)
-                                .flatMap(error ->
-                                        Mono.error(new BadRequestException(error.getMessage()))
-                                )
-                )
-                .bodyToMono(CreditCardResponse.class);
+            .uri("/credit-card/{id}", id)
+            .body(Mono.just(request), CreditCardPatchRequest.class)
+            .retrieve()
+            .onStatus(HttpStatus::is4xxClientError, response ->
+                response.bodyToMono(ResponseBase.class)
+                    .flatMap(error ->
+                        Mono.error(new BadRequestException(error.getMessage()))
+                    )
+            )
+            .bodyToMono(CreditCardResponse.class);
     }
 
     @Override
     public Flux<CreditCardResponse> getCreditCardsByCustomerId(String customerId) {
         return creditWebClient.get()
-                .uri("/credit-card/by-customer/{customerId}", customerId)
-                .retrieve()
-                .onStatus(HttpStatus::is4xxClientError, response ->
-                        response.bodyToMono(ResponseBase.class)
-                                .flatMap(error ->
-                                        Mono.error(new BadRequestException(error.getMessage()))
-                                )
-                )
-                .bodyToFlux(CreditCardResponse.class);
+            .uri("/credit-card/by-customer/{customerId}", customerId)
+            .retrieve()
+            .onStatus(HttpStatus::is4xxClientError, response ->
+                response.bodyToMono(ResponseBase.class)
+                    .flatMap(error -> Mono.error(
+                        response.statusCode().equals(HttpStatus.NOT_FOUND)
+                            ? new NotFoundException(error.getMessage())
+                            : new BadRequestException(error.getMessage())
+                    ))
+            )
+            .bodyToFlux(CreditCardResponse.class);
     }
 
     @Override
     public Mono<CreditCardResponse> getCreditCardById(String creditCardId) {
         return creditWebClient.get()
-                .uri("/credit-card/{creditCardId}", creditCardId)
-                .retrieve()
-                .onStatus(HttpStatus::is4xxClientError, response ->
-                        response.bodyToMono(ResponseBase.class)
-                                .flatMap(error ->
-                                        Mono.error(new BadRequestException(error.getMessage()))
-                                )
-                )
-                .bodyToMono(CreditCardResponse.class);
+            .uri("/credit-card/{creditCardId}", creditCardId)
+            .retrieve()
+            .onStatus(HttpStatus::is4xxClientError, response ->
+                response.bodyToMono(ResponseBase.class)
+                    .flatMap(error -> Mono.error(
+                        response.statusCode().equals(HttpStatus.NOT_FOUND)
+                            ? new NotFoundException(error.getMessage())
+                            : new BadRequestException(error.getMessage())
+                    ))
+            )
+            .bodyToMono(CreditCardResponse.class);
     }
 
 }

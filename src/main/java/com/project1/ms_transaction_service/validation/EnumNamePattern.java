@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
 @Constraint(validatedBy = EnumNamePatternValidator.class)
 public @interface EnumNamePattern {
     String regexp();
-    String message() default "Invalid value type. Should be one of: \"{regexp}\"";
+    String message() default "Invalid type value. Should be one of: {regexp}";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
 }
