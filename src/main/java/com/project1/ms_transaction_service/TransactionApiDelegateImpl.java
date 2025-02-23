@@ -55,16 +55,9 @@ public class TransactionApiDelegateImpl implements TransactionsApiDelegate {
     }
 
     @Override
-    public Mono<ResponseEntity<CreditCardTransactionResponse>> createCreditCardUsageTransaction(
+    public Mono<ResponseEntity<CreditCardTransactionResponse>> createCreditCardTransaction(
         Mono<CreditCardTransactionRequest> creditCardTransactionRequest, ServerWebExchange exchange) {
-        return creditCardTransactionService.createCreditCardUsageTransaction(creditCardTransactionRequest)
-            .map(ResponseEntity.status(HttpStatus.CREATED)::body);
-    }
-
-    @Override
-    public Mono<ResponseEntity<CreditCardTransactionResponse>> createCreditCardPaymentTransaction(
-        Mono<CreditCardTransactionRequest> creditCardPaymentTransactionRequest, ServerWebExchange exchange) {
-        return creditCardTransactionService.createCreditCardPaymentTransaction(creditCardPaymentTransactionRequest)
+        return creditCardTransactionService.createCreditCardTransaction(creditCardTransactionRequest)
             .map(ResponseEntity.status(HttpStatus.CREATED)::body);
     }
 

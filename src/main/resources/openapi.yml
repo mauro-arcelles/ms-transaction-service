@@ -85,28 +85,10 @@ paths:
                 items:
                   $ref: '#/components/schemas/CreditPaymentTransactionResponse'
 
-  /transactions/credit-card/usage:
+  /transactions/credit-card:
     post:
-      summary: Create an usage transaction for credit cards
-      operationId: createCreditCardUsageTransaction
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreditCardTransactionRequest'
-      responses:
-        '201':
-          description: Credit card transaction created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreditCardTransactionResponse'
-
-  /transactions/credit-card/payment:
-    post:
-      summary: Create a payment transaction for credit cards
-      operationId: createCreditCardPaymentTransaction
+      summary: Create a transaction for credit cards
+      operationId: createCreditCardTransaction
       requestBody:
         required: true
         content:
@@ -306,12 +288,17 @@ components:
           type: string
         amount:
           type: number
+          minimum: 1
         description:
           type: string
+        type:
+          type: string
+          x-field-extra-annotation: '@com.project1.ms_transaction_service.validation.EnumNamePattern(regexp = "USAGE|PAYMENT")'
       required:
         - creditCard
         - customerId
         - amount
+        - type
 
     CreditCardTransactionResponse:
       type: object

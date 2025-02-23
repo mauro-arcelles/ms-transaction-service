@@ -6,9 +6,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface CreditCardTransactionService {
-    Mono<CreditCardTransactionResponse> createCreditCardUsageTransaction(Mono<CreditCardTransactionRequest> request);
-
-    Mono<CreditCardTransactionResponse> createCreditCardPaymentTransaction(Mono<CreditCardTransactionRequest> request);
+    Mono<CreditCardTransactionResponse> createCreditCardTransaction(Mono<CreditCardTransactionRequest> request);
 
     Flux<CreditCardTransactionResponse> getCreditCardTransactionsByCardNumber(String originAccountNumber);
 }

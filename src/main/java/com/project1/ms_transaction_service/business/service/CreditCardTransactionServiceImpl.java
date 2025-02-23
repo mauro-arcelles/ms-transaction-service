@@ -6,6 +6,7 @@ import com.project1.ms_transaction_service.exception.BadRequestException;
 import com.project1.ms_transaction_service.exception.CreditCardCustomerMismatchException;
 import com.project1.ms_transaction_service.model.*;
 import com.project1.ms_transaction_service.model.entity.CreditCardTransaction;
+import com.project1.ms_transaction_service.model.entity.CreditCardTransactionType;
 import com.project1.ms_transaction_service.repository.CreditCardTransactionRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,20 +33,18 @@ public class CreditCardTransactionServiceImpl implements CreditCardTransactionSe
     CreditCardTransactionRepository creditCardTransactionRepository;
 
     @Override
-    public Mono<CreditCardTransactionResponse> createCreditCardUsageTransaction(Mono<CreditCardTransactionRequest> request) {
+    public Mono<CreditCardTransactionResponse> createCreditCardTransaction(Mono<CreditCardTransactionRequest> request) {
         return request
             .flatMap(this::validateAndGetCreditCard)
             .flatMap(this::validateCreditCardUsageLimit)
-            .flatMap(this::processUsageTransaction)
-            .map(creditCardTransactionMapper::getCreditCardTransactionResponse);
-    }
-
-    @Override
-    public Mono<CreditCardTransactionResponse> createCreditCardPaymentTransaction(Mono<CreditCardTransactionRequest> request) {
-        return request
-            .flatMap(this::validateAndGetCreditCard)
-            .flatMap(this::validateCreditCardPaymentLimit)
-            .flatMap(this::processPaymentTransaction)
+            .flatMap(tuple -> {
+                CreditCardTransactionRequest req = tuple.getT1();
+                if (CreditCardTransactionType.USAGE.toString().equals(req.getType())) {
+                    return processUsageTransaction(tuple);
+                } else {
+                    return processPaymentTransaction(tuple);
+                }
+            })
             .map(creditCardTransactionMapper::getCreditCardTransactionResponse);
     }
 
@@ -87,30 +86,16 @@ public class CreditCardTransactionServiceImpl implements CreditCardTransactionSe
         CreditCardResponse card = tuple.getT2();
 
         if (card.getUsedAmount() != null) {
-            BigDecimal newAmount = card.getUsedAmount().add(request.getAmount());
-            if (newAmount.compareTo(card.getCreditLimit()) > 0) {
-                return Mono.error(new BadRequestException("Cannot complete the transaction. CREDIT CARD has reached its total amount limit"));
-            }
-        }
-
-        return Mono.just(tuple);
-    }
-
-    /**
-     * Validates if the transaction amount is within the available used amount
-     *
-     * @param tuple Contains the transaction request and card details
-     * @return The input tuple if validation passes
-     * @throws BadRequestException if the amount to pay is more than the used amount
-     */
-    private Mono<Tuple2<CreditCardTransactionRequest, CreditCardResponse>> validateCreditCardPaymentLimit(
-        Tuple2<CreditCardTransactionRequest, CreditCardResponse> tuple) {
-        CreditCardTransactionRequest request = tuple.getT1();
-        CreditCardResponse card = tuple.getT2();
-
-        if (card.getUsedAmount() != null) {
-            if (request.getAmount().compareTo(card.getUsedAmount()) > 0) {
-                return Mono.error(new BadRequestException("Cannot complete the transaction. Amount to pay is more than the actual CREDIT CARD used amount"));
+            if (CreditCardTransactionType.USAGE.toString().equals(request.getType())) {
+                BigDecimal newAmount = card.getUsedAmount().add(request.getAmount());
+                if (newAmount.compareTo(card.getCreditLimit()) > 0) {
+                    return Mono.error(new BadRequestException("Cannot complete the transaction. CREDIT CARD has insufficient funds"));
+                }
+            } else {
+                if (request.getAmount().compareTo(card.getUsedAmount()) > 0) {
+                    return Mono.error(
+                        new BadRequestException("Cannot complete the transaction. Amount to pay is more than the actual CREDIT CARD used amount"));
+                }
             }
         }
 
@@ -160,7 +145,7 @@ public class CreditCardTransactionServiceImpl implements CreditCardTransactionSe
     /**
      * Updates the used amount of a credit card by adding the specified amount.
      *
-     * @param card   The credit card response object containing current card information
+     * @param card          The credit card response object containing current card information
      * @param newUsedAmount The new used amount of the credit card
      * @return A Mono containing the updated credit card response
      */
