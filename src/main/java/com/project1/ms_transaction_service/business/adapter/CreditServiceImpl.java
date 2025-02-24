@@ -95,53 +95,53 @@ public class CreditServiceImpl implements CreditService {
     }
 
     // getCreditByIdFallback
-    private Mono<CustomerResponse> getCreditByIdFallback(String id, InternalServerErrorException e) {
+    private Mono<CreditResponse> getCreditByIdFallback(String id, InternalServerErrorException e) {
         return Mono.error(new BadRequestException(CREDIT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Mono<CustomerResponse> getCreditByIdFallback(String id, TimeoutException e) {
+    private Mono<CreditResponse> getCreditByIdFallback(String id, TimeoutException e) {
         return Mono.error(new BadRequestException(CREDIT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Mono<CustomerResponse> getCreditByIdFallback(String id, CallNotPermittedException e) {
+    private Mono<CreditResponse> getCreditByIdFallback(String id, CallNotPermittedException e) {
         return Mono.error(new BadRequestException(CREDIT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Mono<CustomerResponse> getCreditByIdFallback(String id, WebClientRequestException e) {
+    private Mono<CreditResponse> getCreditByIdFallback(String id, WebClientRequestException e) {
         return Mono.error(new BadRequestException(CREDIT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
     // updateCreditByIdFallback
-    private Mono<CustomerResponse> updateCreditByIdFallback(String id, InternalServerErrorException e) {
+    private Mono<CreditResponse> updateCreditByIdFallback(String creditId, CreditPatchRequest request, InternalServerErrorException e) {
         return Mono.error(new BadRequestException(CREDIT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Mono<CustomerResponse> updateCreditByIdFallback(String id, TimeoutException e) {
+    private Mono<CreditResponse> updateCreditByIdFallback(String creditId, CreditPatchRequest request, TimeoutException e) {
         return Mono.error(new BadRequestException(CREDIT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Mono<CustomerResponse> updateCreditByIdFallback(String id, CallNotPermittedException e) {
+    private Mono<CreditResponse> updateCreditByIdFallback(String creditId, CreditPatchRequest request, CallNotPermittedException e) {
         return Mono.error(new BadRequestException(CREDIT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Mono<CustomerResponse> updateCreditByIdFallback(String id, WebClientRequestException e) {
+    private Mono<CreditResponse> updateCreditByIdFallback(String creditId, CreditPatchRequest request, WebClientRequestException e) {
         return Mono.error(new BadRequestException(CREDIT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
     // getCreditsByCustomerIdFallback
-    private Flux<CustomerResponse> getCreditsByCustomerIdFallback(String id, InternalServerErrorException e) {
+    private Flux<CreditResponse> getCreditsByCustomerIdFallback(String id, InternalServerErrorException e) {
         return Flux.error(new BadRequestException(CREDIT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Flux<CustomerResponse> getCreditsByCustomerIdFallback(String id, TimeoutException e) {
+    private Flux<CreditResponse> getCreditsByCustomerIdFallback(String id, TimeoutException e) {
         return Flux.error(new BadRequestException(CREDIT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Flux<CustomerResponse> getCreditsByCustomerIdFallback(String id, CallNotPermittedException e) {
+    private Flux<CreditResponse> getCreditsByCustomerIdFallback(String id, CallNotPermittedException e) {
         return Flux.error(new BadRequestException(CREDIT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Flux<CustomerResponse> getCreditsByCustomerIdFallback(String id, WebClientRequestException e) {
+    private Flux<CreditResponse> getCreditsByCustomerIdFallback(String id, WebClientRequestException e) {
         return Flux.error(new BadRequestException(CREDIT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 }

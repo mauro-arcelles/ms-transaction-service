@@ -50,19 +50,19 @@ public class DebitCardServiceImpl implements DebitCardService {
     }
 
     // getDebitCardByIdFallback
-    private Mono<CustomerResponse> getDebitCardByIdFallback(String id, InternalServerErrorException e) {
+    private Mono<DebitCardResponse> getDebitCardByIdFallback(String id, InternalServerErrorException e) {
         return Mono.error(new BadRequestException(ACCOUNT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Mono<CustomerResponse> getDebitCardByIdFallback(String id, TimeoutException e) {
+    private Mono<DebitCardResponse> getDebitCardByIdFallback(String id, TimeoutException e) {
         return Mono.error(new BadRequestException(ACCOUNT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Mono<CustomerResponse> getDebitCardByIdFallback(String id, CallNotPermittedException e) {
+    private Mono<DebitCardResponse> getDebitCardByIdFallback(String id, CallNotPermittedException e) {
         return Mono.error(new BadRequestException(ACCOUNT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Mono<CustomerResponse> getDebitCardByIdFallback(String id, WebClientRequestException e) {
+    private Mono<DebitCardResponse> getDebitCardByIdFallback(String id, WebClientRequestException e) {
         return Mono.error(new BadRequestException(ACCOUNT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 }

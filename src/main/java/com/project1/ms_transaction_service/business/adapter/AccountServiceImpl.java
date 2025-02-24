@@ -120,70 +120,70 @@ public class AccountServiceImpl implements AccountService {
     }
 
     // getAccountByAccountNumberFallback
-    private Mono<CustomerResponse> getAccountByAccountNumberFallback(String id, InternalServerErrorException e) {
+    private Mono<AccountResponse> getAccountByAccountNumberFallback(String id, InternalServerErrorException e) {
         return Mono.error(new BadRequestException(ACCOUNT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Mono<CustomerResponse> getAccountByAccountNumberFallback(String id, TimeoutException e) {
+    private Mono<AccountResponse> getAccountByAccountNumberFallback(String id, TimeoutException e) {
         return Mono.error(new BadRequestException(ACCOUNT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Mono<CustomerResponse> getAccountByAccountNumberFallback(String id, CallNotPermittedException e) {
+    private Mono<AccountResponse> getAccountByAccountNumberFallback(String id, CallNotPermittedException e) {
         return Mono.error(new BadRequestException(ACCOUNT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Mono<CustomerResponse> getAccountByAccountNumberFallback(String id, WebClientRequestException e) {
+    private Mono<AccountResponse> getAccountByAccountNumberFallback(String id, WebClientRequestException e) {
         return Mono.error(new BadRequestException(ACCOUNT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
     // updateAccountFallback
-    private Mono<CustomerResponse> updateAccountFallback(String id, InternalServerErrorException e) {
+    private Mono<AccountResponse> updateAccountFallback(String id, AccountPatchRequest request, InternalServerErrorException e) {
         return Mono.error(new BadRequestException(ACCOUNT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Mono<CustomerResponse> updateAccountFallback(String id, TimeoutException e) {
+    private Mono<AccountResponse> updateAccountFallback(String id, AccountPatchRequest request, TimeoutException e) {
         return Mono.error(new BadRequestException(ACCOUNT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Mono<CustomerResponse> updateAccountFallback(String id, CallNotPermittedException e) {
+    private Mono<AccountResponse> updateAccountFallback(String id, AccountPatchRequest request, CallNotPermittedException e) {
         return Mono.error(new BadRequestException(ACCOUNT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Mono<CustomerResponse> updateAccountFallback(String id, WebClientRequestException e) {
+    private Mono<AccountResponse> updateAccountFallback(String id, AccountPatchRequest request, WebClientRequestException e) {
         return Mono.error(new BadRequestException(ACCOUNT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
     // getAccountsByCustomerIdFallback
-    private Flux<CustomerResponse> getAccountsByCustomerIdFallback(String id, InternalServerErrorException e) {
+    private Flux<AccountResponse> getAccountsByCustomerIdFallback(String id, InternalServerErrorException e) {
         return Flux.error(new BadRequestException(ACCOUNT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Flux<CustomerResponse> getAccountsByCustomerIdFallback(String id, TimeoutException e) {
+    private Flux<AccountResponse> getAccountsByCustomerIdFallback(String id, TimeoutException e) {
         return Flux.error(new BadRequestException(ACCOUNT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Flux<CustomerResponse> getAccountsByCustomerIdFallback(String id, CallNotPermittedException e) {
+    private Flux<AccountResponse> getAccountsByCustomerIdFallback(String id, CallNotPermittedException e) {
         return Flux.error(new BadRequestException(ACCOUNT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Flux<CustomerResponse> getAccountsByCustomerIdFallback(String id, WebClientRequestException e) {
+    private Flux<AccountResponse> getAccountsByCustomerIdFallback(String id, WebClientRequestException e) {
         return Flux.error(new BadRequestException(ACCOUNT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
     // getAccountByIdFallback
-    private Mono<CustomerResponse> getAccountByIdFallback(String id, InternalServerErrorException e) {
+    private Mono<AccountResponse> getAccountByIdFallback(String id, InternalServerErrorException e) {
         return Mono.error(new BadRequestException(ACCOUNT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Mono<CustomerResponse> getAccountByIdFallback(String id, TimeoutException e) {
+    private Mono<AccountResponse> getAccountByIdFallback(String id, TimeoutException e) {
         return Mono.error(new BadRequestException(ACCOUNT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Mono<CustomerResponse> getAccountByIdFallback(String id, CallNotPermittedException e) {
+    private Mono<AccountResponse> getAccountByIdFallback(String id, CallNotPermittedException e) {
         return Mono.error(new BadRequestException(ACCOUNT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Mono<CustomerResponse> getAccountByIdFallback(String id, WebClientRequestException e) {
+    private Mono<AccountResponse> getAccountByIdFallback(String id, WebClientRequestException e) {
         return Mono.error(new BadRequestException(ACCOUNT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 }
