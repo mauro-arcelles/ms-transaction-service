@@ -1,7 +1,9 @@
 package com.project1.ms_transaction_service.business.service;
 
 import com.project1.ms_transaction_service.business.adapter.CreditService;
+import com.project1.ms_transaction_service.business.adapter.CustomerService;
 import com.project1.ms_transaction_service.business.mapper.CreditTransactionMapper;
+import com.project1.ms_transaction_service.exception.BadRequestException;
 import com.project1.ms_transaction_service.model.CreditPatchRequest;
 import com.project1.ms_transaction_service.model.CreditPaymentTransactionRequest;
 import com.project1.ms_transaction_service.model.CreditPaymentTransactionResponse;
@@ -23,22 +25,25 @@ import java.math.BigDecimal;
 public class CreditTransactionServiceImpl implements CreditTransactionService {
 
     @Autowired
-    CreditService creditService;
+    private CreditService creditService;
 
     @Autowired
-    CreditTransactionMapper creditTransactionMapper;
+    private CustomerService customerService;
 
     @Autowired
-    CreditTransactionRepository creditTransactionRepository;
+    private CreditTransactionMapper creditTransactionMapper;
+
+    @Autowired
+    private CreditTransactionRepository creditTransactionRepository;
 
     @Override
     public Mono<CreditPaymentTransactionResponse> createCreditPaymentTransaction(Mono<CreditPaymentTransactionRequest> request) {
-        return request
-                .flatMap(this::validateAndGetCredit)
-                .flatMap(this::createCreditTransaction)
-                .flatMap(this::saveCreditTransaction)
-                .flatMap(this::updateCreditAmount)
-                .map(creditTransactionMapper::getCreditPaymentTransactionResponse);
+        return request.flatMap(this::validateAndGetCredit)
+            .flatMap(this::validateCustomer)
+            .flatMap(this::createCreditTransaction)
+            .flatMap(this::saveCreditTransaction)
+            .flatMap(this::updateCreditAmount)
+            .map(creditTransactionMapper::getCreditPaymentTransactionResponse);
     }
 
     @Override
@@ -60,6 +65,12 @@ public class CreditTransactionServiceImpl implements CreditTransactionService {
         CreditResponse creditResponse = tuple.getT1();
         CreditPaymentTransactionRequest request = tuple.getT2();
         CreditTransaction transaction = creditTransactionMapper.getCreditPaymentTransactionEntity(request);
+        if (creditResponse.getAmountPaid() != null) {
+            BigDecimal newAmountPaid = creditResponse.getAmountPaid().add(creditResponse.getMonthlyPayment());
+            if (newAmountPaid.compareTo(creditResponse.getTotalAmount()) > 0) {
+                throw new BadRequestException("Cannot process transaction. CREDIT has been fully paid");
+            }
+        }
         return Mono.just(Tuples.of(creditResponse, transaction));
     }
 
@@ -71,7 +82,7 @@ public class CreditTransactionServiceImpl implements CreditTransactionService {
      */
     private Mono<Tuple2<CreditResponse, CreditTransaction>> saveCreditTransaction(Tuple2<CreditResponse, CreditTransaction> tuple) {
         return creditTransactionRepository.save(tuple.getT2())
-                .map(savedTransaction -> Tuples.of(tuple.getT1(), savedTransaction));
+            .map(savedTransaction -> Tuples.of(tuple.getT1(), savedTransaction));
     }
 
     /**
@@ -90,7 +101,7 @@ public class CreditTransactionServiceImpl implements CreditTransactionService {
             patchRequest.setAmountPaid(newAmountPaid);
 
             return creditService.updateCreditById(creditTransaction.getCreditId(), patchRequest)
-                    .map(cr -> creditTransaction);
+                .map(cr -> creditTransaction);
         }
         return Mono.just(creditTransaction);
     }
@@ -104,6 +115,19 @@ public class CreditTransactionServiceImpl implements CreditTransactionService {
      */
     private Mono<Tuple2<CreditResponse, CreditPaymentTransactionRequest>> validateAndGetCredit(CreditPaymentTransactionRequest request) {
         return creditService.getCreditById(request.getCreditId())
-                .map(creditResponse -> Tuples.of(creditResponse, request));
+            .map(creditResponse -> Tuples.of(creditResponse, request));
+    }
+
+    /**
+     * Validates customer existence by ID
+     *
+     * @param tuple Contains credit response and payment request
+     * @return Mono of validated tuple
+     */
+    private Mono<Tuple2<CreditResponse, CreditPaymentTransactionRequest>> validateCustomer(Tuple2<CreditResponse, CreditPaymentTransactionRequest> tuple) {
+        CreditResponse creditResponse = tuple.getT1();
+        CreditPaymentTransactionRequest request = tuple.getT2();
+        return customerService.getCustomerById(request.getCustomerId())
+            .map(customerResponse -> Tuples.of(creditResponse, request));
     }
 }

@@ -15,4 +15,8 @@ import org.springframework.data.annotation.TypeAlias;
 @TypeAlias("creditTransaction")
 public class CreditTransaction extends Transaction {
     private String creditId;
+
+    private String customerId;
+
+    private CreditTransactionType type;
 }

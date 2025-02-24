@@ -395,10 +395,12 @@ components:
       properties:
         creditId:
           type: string
+        customerId:
+          type: string
+          minLength: 1
       required:
         - creditId
         - customerId
-        - amount
 
     CreditPaymentTransactionResponse:
       type: object
@@ -408,6 +410,10 @@ components:
         date:
           type: string
           format: date-time
+        type:
+          type: string
+        customerId:
+          type: string
 
     CreditPatchRequest:
       type: object
