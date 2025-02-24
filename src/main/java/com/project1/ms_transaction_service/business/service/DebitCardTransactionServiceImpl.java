@@ -62,7 +62,7 @@ public class DebitCardTransactionServiceImpl implements DebitCardTransactionServ
         DebitCardTransactionRequest request = tuple.getT1();
         DebitCardResponse debitCard = tuple.getT2();
         if (debitCard.getAssociations().isEmpty()) {
-            throw new BadRequestException("Cannot process the transaction. No account associated with the debit card");
+            throw new BadRequestException("Cannot complete the transaction. No account associated with the debit card");
         }
 
         Optional<DebitCardAssociation> association = debitCard.getAssociations().stream()
@@ -70,7 +70,7 @@ public class DebitCardTransactionServiceImpl implements DebitCardTransactionServ
             .min(Comparator.comparingInt(DebitCardAssociation::getPosition));
 
         if (association.isEmpty()) {
-            throw new BadRequestException("Cannot process the transaction. All associated accounts have insufficient funds");
+            throw new BadRequestException("Cannot complete the transaction. All associated accounts have insufficient funds");
         }
 
         String accountId = association.get().getAccountId();

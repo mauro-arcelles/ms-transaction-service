@@ -68,7 +68,7 @@ public class CreditTransactionServiceImpl implements CreditTransactionService {
         if (creditResponse.getAmountPaid() != null) {
             BigDecimal newAmountPaid = creditResponse.getAmountPaid().add(creditResponse.getMonthlyPayment());
             if (newAmountPaid.compareTo(creditResponse.getTotalAmount()) > 0) {
-                throw new BadRequestException("Cannot process transaction. CREDIT has been fully paid");
+                throw new BadRequestException("Cannot complete transaction. CREDIT has been fully paid");
             }
         }
         return Mono.just(Tuples.of(creditResponse, transaction));

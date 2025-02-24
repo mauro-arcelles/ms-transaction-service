@@ -14,7 +14,7 @@ public class CreditCardTransactionMapper {
     public CreditCardTransaction getCreditCardUsageTransactionEntity(CreditCardTransactionRequest request) {
         CreditCardTransaction creditCardTransaction = new CreditCardTransaction();
         creditCardTransaction.setAmount(request.getAmount());
-        creditCardTransaction.setCreditCard(request.getCreditCard());
+        creditCardTransaction.setCreditCard(request.getCreditCardId());
         creditCardTransaction.setDescription(request.getDescription());
         creditCardTransaction.setCustomerId(request.getCustomerId());
         creditCardTransaction.setType(CreditCardTransactionType.USAGE);
@@ -37,7 +37,7 @@ public class CreditCardTransactionMapper {
     public CreditCardTransaction getCreditCardPaymentTransactionEntity(CreditCardTransactionRequest request) {
         CreditCardTransaction creditCardTransaction = new CreditCardTransaction();
         creditCardTransaction.setAmount(request.getAmount());
-        creditCardTransaction.setCreditCard(request.getCreditCard());
+        creditCardTransaction.setCreditCard(request.getCreditCardId());
         creditCardTransaction.setDescription(request.getDescription());
         creditCardTransaction.setCustomerId(request.getCustomerId());
         creditCardTransaction.setType(CreditCardTransactionType.PAYMENT);

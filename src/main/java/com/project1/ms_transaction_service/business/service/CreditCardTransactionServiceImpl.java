@@ -1,6 +1,7 @@
 package com.project1.ms_transaction_service.business.service;
 
 import com.project1.ms_transaction_service.business.adapter.CreditCardService;
+import com.project1.ms_transaction_service.business.adapter.CustomerService;
 import com.project1.ms_transaction_service.business.mapper.CreditCardTransactionMapper;
 import com.project1.ms_transaction_service.exception.BadRequestException;
 import com.project1.ms_transaction_service.exception.CreditCardCustomerMismatchException;
@@ -24,18 +25,22 @@ import java.util.Optional;
 public class CreditCardTransactionServiceImpl implements CreditCardTransactionService {
 
     @Autowired
-    CreditCardTransactionMapper creditCardTransactionMapper;
+    private CreditCardTransactionMapper creditCardTransactionMapper;
 
     @Autowired
-    CreditCardService creditCardService;
+    private CreditCardService creditCardService;
 
     @Autowired
-    CreditCardTransactionRepository creditCardTransactionRepository;
+    private CustomerService customerService;
+
+    @Autowired
+    private CreditCardTransactionRepository creditCardTransactionRepository;
 
     @Override
     public Mono<CreditCardTransactionResponse> createCreditCardTransaction(Mono<CreditCardTransactionRequest> request) {
         return request
             .flatMap(this::validateAndGetCreditCard)
+            .flatMap(this::validateCustomer)
             .flatMap(this::validateCreditCardUsageLimit)
             .flatMap(tuple -> {
                 CreditCardTransactionRequest req = tuple.getT1();
@@ -65,12 +70,37 @@ public class CreditCardTransactionServiceImpl implements CreditCardTransactionSe
      * @throws CreditCardCustomerMismatchException if card doesn't belong to customer
      */
     private Mono<Tuple2<CreditCardTransactionRequest, CreditCardResponse>> validateAndGetCreditCard(CreditCardTransactionRequest request) {
-        return creditCardService.getCreditCardById(request.getCreditCard())
-            .filter(card -> Optional.ofNullable(card.getCustomerId())
-                .map(id -> id.equals(request.getCustomerId()))
-                .orElse(false))
-            .switchIfEmpty(Mono.error(new CreditCardCustomerMismatchException()))
+        return creditCardService.getCreditCardById(request.getCreditCardId())
             .map(card -> Tuples.of(request, card));
+    }
+
+    /**
+     * Validates customer based on transaction type:
+     * - For PAYMENT: Verifies customer existence
+     * - For USAGE: Validates if customer owns the credit card
+     * @param tuple Contains transaction request and credit card response
+     * @return Mono of validated tuple
+     * @throws CreditCardCustomerMismatchException if customer is not card owner for usage transaction
+     */
+    private Mono<Tuple2<CreditCardTransactionRequest, CreditCardResponse>> validateCustomer(
+        Tuple2<CreditCardTransactionRequest, CreditCardResponse> tuple) {
+        CreditCardTransactionRequest request = tuple.getT1();
+        CreditCardResponse card = tuple.getT2();
+
+        // if its payment transaction validate if the customer exists
+        if (CreditCardTransactionType.PAYMENT.toString().equals(request.getType())) {
+            return customerService.getCustomerById(request.getCustomerId())
+                .flatMap(c -> Mono.just(Tuples.of(request, card)));
+        }
+
+        // if its usage transaction validate if the given customer is the owner of the account
+        Optional.ofNullable(card.getCustomerId())
+            .filter(id -> !id.equals(request.getCustomerId()))
+            .ifPresent(id -> {
+                throw new CreditCardCustomerMismatchException();
+            });
+
+        return Mono.just(Tuples.of(request, card));
     }
 
     /**

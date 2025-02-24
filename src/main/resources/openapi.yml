@@ -300,7 +300,7 @@ components:
     CreditCardTransactionRequest:
       type: object
       properties:
-        creditCard:
+        creditCardId:
           type: string
         customerId:
           type: string
@@ -313,7 +313,7 @@ components:
           type: string
           x-field-extra-annotation: '@com.project1.ms_transaction_service.validation.EnumNamePattern(regexp = "USAGE|PAYMENT")'
       required:
-        - creditCard
+        - creditCardId
         - customerId
         - amount
         - type
