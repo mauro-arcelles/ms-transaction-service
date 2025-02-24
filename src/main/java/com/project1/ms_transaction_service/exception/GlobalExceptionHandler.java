@@ -39,7 +39,7 @@ public class GlobalExceptionHandler {
     public Mono<ResponseEntity<String>> handleGenericError(Exception ex) {
         log.error("error", ex);
         return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body("Internal Server Error"));
+            .body(ex.getMessage()));
     }
 
     @ExceptionHandler(BadRequestException.class)
@@ -57,6 +57,15 @@ public class GlobalExceptionHandler {
         ResponseBase responseBase = new ResponseBase();
         responseBase.setMessage(ex.getMessage());
         return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body(responseBase));
+    }
+
+    @ExceptionHandler(InternalServerErrorException.class)
+    public Mono<ResponseEntity<ResponseBase>> handleInternalServerErrorException(Exception ex) {
+        log.error("Error", ex);
+        ResponseBase responseBase = new ResponseBase();
+        responseBase.setMessage(ex.getMessage());
+        return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
             .body(responseBase));
     }
 
