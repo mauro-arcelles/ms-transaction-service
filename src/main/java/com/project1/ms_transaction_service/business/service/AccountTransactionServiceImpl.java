@@ -18,6 +18,7 @@ import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Optional;
@@ -28,16 +29,19 @@ import java.util.stream.Collectors;
 public class AccountTransactionServiceImpl implements AccountTransactionService {
 
     @Autowired
-    AccountService accountService;
+    private AccountService accountService;
 
     @Autowired
-    AccountTransactionMapper accountTransactionMapper;
+    private AccountTransactionMapper accountTransactionMapper;
 
     @Autowired
-    AccountTransactionRepository accountTransactionRepository;
+    private AccountTransactionRepository accountTransactionRepository;
 
     @Autowired
-    TransactionRepository transactionRepository;
+    private TransactionRepository transactionRepository;
+
+    @Autowired
+    private Clock clock;
 
     @Override
     public Mono<AccountTransactionResponse> createAccountTransaction(Mono<AccountTransactionRequest> request) {
@@ -137,8 +141,11 @@ public class AccountTransactionServiceImpl implements AccountTransactionService 
         if (!AccountStatus.ACTIVE.toString().equals(originAccount.getStatus())) {
             return Mono.error(new BadRequestException("origin ACCOUNT has " + originAccount.getStatus() + " status"));
         }
-        if (!AccountStatus.ACTIVE.toString().equals(originAccount.getStatus())) {
-            return Mono.error(new BadRequestException("destination ACCOUNT has " + originAccount.getStatus() + " status"));
+        if (destinationAccountOptional.isPresent()) {
+            AccountResponse destinationResponse = destinationAccountOptional.get();
+            if (!AccountStatus.ACTIVE.toString().equals(destinationResponse.getStatus())) {
+                return Mono.error(new BadRequestException("destination ACCOUNT has " + destinationResponse.getStatus() + " status"));
+            }
         }
         if (accountTransactionType == AccountTransactionType.TRANSFER) {
             // transfer transactions cannot be made from fixed term account
@@ -188,7 +195,7 @@ public class AccountTransactionServiceImpl implements AccountTransactionService 
 
         if (AccountType.FIXED_TERM.equals(originAccountType)) {
             Integer availableDay = Optional.ofNullable(originAccount.getAvailableDayForMovements()).orElse(1);
-            LocalDate today = LocalDate.now();
+            LocalDate today = LocalDate.now(clock);
             if (today.getDayOfMonth() != availableDay) {
                 return Mono.error(new BadRequestException("FIXED_TERM account can only make transactions on " + availableDay + "th of each month"));
             }

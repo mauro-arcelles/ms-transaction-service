@@ -33,34 +33,90 @@ public class AccountTransactionMapper {
         return response;
     }
 
+    /**
+     * Creates an AccountTransaction entity from a request and account response
+     * @param request The transaction request containing transaction details
+     * @param accountResponse The account information response
+     * @return A new AccountTransaction entity
+     */
     public AccountTransaction getAccountTransactionEntity(AccountTransactionRequest request, AccountResponse accountResponse) {
-        AccountTransaction accountTransaction = new AccountTransaction();
-        accountTransaction.setOriginAccountNumber(request.getOriginAccountNumber());
-        AccountTransactionType accountTransactionType = AccountTransactionType.valueOf(request.getType());
-        if (accountTransactionType == AccountTransactionType.TRANSFER) {
+        AccountTransaction accountTransaction = createBaseTransaction(request);
+
+        if (AccountTransactionType.valueOf(request.getType()) == AccountTransactionType.TRANSFER) {
             accountTransaction.setDestinationAccountNumber(request.getDestinationAccountNumber());
         }
-        AccountType accountType = AccountType.valueOf(accountResponse.getAccountType());
-        if (accountType == AccountType.SAVINGS) {
-            if (accountTransactionType == AccountTransactionType.DEPOSIT || accountTransactionType == AccountTransactionType.WITHDRAWAL) {
-                if (accountResponse.getMonthlyMovements() != null
-                        && accountResponse.getMaxMonthlyMovementsNoFee() != null
-                        && accountResponse.getTransactionCommissionFeePercentage() != null
-                        && accountResponse.getMonthlyMovements() >= accountResponse.getMaxMonthlyMovementsNoFee()) {
 
-                    accountTransaction.setCommissionFeePercentage(accountResponse.getTransactionCommissionFeePercentage());
-                    BigDecimal commissionFee = accountResponse.getTransactionCommissionFeePercentage()
-                            .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP)
-                            .multiply(request.getAmount());
-                    accountTransaction.setCommissionFee(commissionFee);
-                }
-            }
+        if (shouldApplyCommissionFee(request, accountResponse)) {
+            applyCommissionFee(accountTransaction, accountResponse, request.getAmount());
         }
-        accountTransaction.setType(AccountTransactionType.valueOf(request.getType()));
-        accountTransaction.setAmount(request.getAmount());
-        accountTransaction.setDate(LocalDateTime.now());
-        accountTransaction.setDescription(request.getDescription());
+
         return accountTransaction;
+    }
+
+    /**
+     * Creates base transaction with common fields
+     * @param request Source request containing transaction details
+     * @return Basic AccountTransaction with common fields set
+     */
+    private AccountTransaction createBaseTransaction(AccountTransactionRequest request) {
+        AccountTransaction transaction = new AccountTransaction();
+        transaction.setOriginAccountNumber(request.getOriginAccountNumber());
+        transaction.setType(AccountTransactionType.valueOf(request.getType()));
+        transaction.setAmount(request.getAmount());
+        transaction.setDate(LocalDateTime.now());
+        transaction.setDescription(request.getDescription());
+        return transaction;
+    }
+
+    /**
+     * Determines if commission fee should be applied based on account and transaction type
+     * @param request Transaction request details
+     * @param accountResponse Account information
+     * @return true if commission fee should be applied
+     */
+    private boolean shouldApplyCommissionFee(AccountTransactionRequest request, AccountResponse accountResponse) {
+        AccountTransactionType transactionType = AccountTransactionType.valueOf(request.getType());
+        AccountType accountType = AccountType.valueOf(accountResponse.getAccountType());
+
+        return accountType == AccountType.SAVINGS
+            && (transactionType == AccountTransactionType.DEPOSIT || transactionType == AccountTransactionType.WITHDRAWAL)
+            && hasExceededFreeMovements(accountResponse);
+    }
+
+    /**
+     * Checks if account has exceeded free monthly movements
+     * @param accountResponse Account information containing movement limits
+     * @return true if free movements exceeded
+     */
+    private boolean hasExceededFreeMovements(AccountResponse accountResponse) {
+        return accountResponse.getMonthlyMovements() != null
+            && accountResponse.getMaxMonthlyMovementsNoFee() != null
+            && accountResponse.getTransactionCommissionFeePercentage() != null
+            && accountResponse.getMonthlyMovements() >= accountResponse.getMaxMonthlyMovementsNoFee();
+    }
+
+    /**
+     * Applies commission fee to transaction
+     * @param transaction Transaction to apply fee to
+     * @param accountResponse Account details containing fee information
+     * @param amount Transaction amount
+     */
+    private void applyCommissionFee(AccountTransaction transaction, AccountResponse accountResponse, BigDecimal amount) {
+        BigDecimal feePercentage = accountResponse.getTransactionCommissionFeePercentage();
+        transaction.setCommissionFeePercentage(feePercentage);
+        transaction.setCommissionFee(calculateCommissionFee(feePercentage, amount));
+    }
+
+    /**
+     * Calculates commission fee amount
+     * @param feePercentage Fee percentage to apply
+     * @param amount Amount to calculate fee from
+     * @return Calculated commission fee
+     */
+    private BigDecimal calculateCommissionFee(BigDecimal feePercentage, BigDecimal amount) {
+        return feePercentage
+            .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP)
+            .multiply(amount);
     }
 
     public AccountPatchRequest getAccountPatchRequest(AccountTransaction transaction, AccountResponse accountResponse, boolean isOrigin) {

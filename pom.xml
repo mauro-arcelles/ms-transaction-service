@@ -188,7 +188,9 @@
 				<!--Exclusiones para reporte de cobertura-->
 				<configuration>
 					<excludes>
-						<exclude>com/project1/ms_account_service/MsAccountServiceApplication.class</exclude>
+						<exclude>com/project1/ms_transaction_service/MsTransactionServiceApplication.class</exclude>
+						<exclude>com/project1/ms_transaction_service/model/**</exclude>
+						<exclude>com/project1/ms_transaction_service/api/**</exclude>
 					</excludes>
 				</configuration>
 				<!--Exclusiones para reporte de cobertura-->

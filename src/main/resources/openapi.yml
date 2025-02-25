@@ -317,6 +317,7 @@ components:
           minLength: 1
         amount:
           type: number
+          minimum: 1
         description:
           type: string
       required:
@@ -374,7 +375,7 @@ components:
           type: string
         type:
           type: string
-          x-field-extra-annotation: '@com.project1.ms_transaction_service.validation.EnumNamePattern(regexp = "PAYMENT|WITHDRAWAL")'
+          x-field-extra-annotation: '@com.project1.ms_transaction_service.validation.EnumNamePattern(regexp = "PURCHASE|WITHDRAWAL")'
       required:
         - debitCardId
         - amount

@@ -6,6 +6,7 @@ import com.project1.ms_transaction_service.business.mapper.AccountTransactionMap
 import com.project1.ms_transaction_service.business.mapper.DebitCardTransactionMapper;
 import com.project1.ms_transaction_service.exception.BadRequestException;
 import com.project1.ms_transaction_service.model.*;
+import com.project1.ms_transaction_service.model.entity.AccountStatus;
 import com.project1.ms_transaction_service.model.entity.DebitCardTransaction;
 import com.project1.ms_transaction_service.repository.DebitCardTransactionRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -61,6 +62,7 @@ public class DebitCardTransactionServiceImpl implements DebitCardTransactionServ
                                                                                              List<String> triedAccounts) {
         DebitCardTransactionRequest request = tuple.getT1();
         DebitCardResponse debitCard = tuple.getT2();
+
         if (debitCard.getAssociations().isEmpty()) {
             throw new BadRequestException("Cannot complete the transaction. No account associated with the debit card");
         }
@@ -78,6 +80,10 @@ public class DebitCardTransactionServiceImpl implements DebitCardTransactionServ
 
         return accountService.getAccountById(accountId)
             .flatMap(account -> {
+                if (AccountStatus.INACTIVE.toString().equals(account.getStatus())) {
+                    log.info("Account with id {} has INACTIVE status. Will retry transaction with next associated account", account.getId());
+                    return validateAndGetAccount(tuple, triedAccounts);
+                }
                 if (request.getAmount().compareTo(account.getBalance()) > 0) {
                     log.info("Account with id {} has sufficient balance. Will retry transaction with next associated account", account.getId());
                     return validateAndGetAccount(tuple, triedAccounts);
