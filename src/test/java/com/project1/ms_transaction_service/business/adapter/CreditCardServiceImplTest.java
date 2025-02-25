@@ -2,38 +2,21 @@ package com.project1.ms_transaction_service.business.adapter;
 
 import com.project1.ms_transaction_service.model.CreditCardPatchRequest;
 import com.project1.ms_transaction_service.model.CreditCardResponse;
-import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
-import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Bean;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.time.Duration;
-
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
-@TestConfiguration
 class CreditCardServiceImplTest {
-
-    @Bean
-    public CircuitBreakerRegistry circuitBreakerRegistry() {
-        CircuitBreakerConfig config = CircuitBreakerConfig.custom()
-            .slidingWindowSize(1)
-            .failureRateThreshold(50)
-            .waitDurationInOpenState(Duration.ofMillis(1000))
-            .build();
-        return CircuitBreakerRegistry.of(config);
-    }
 
     @MockBean
     @Qualifier("creditWebClient")
