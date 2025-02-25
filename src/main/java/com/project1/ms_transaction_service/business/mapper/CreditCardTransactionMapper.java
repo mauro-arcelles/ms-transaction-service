@@ -14,7 +14,7 @@ public class CreditCardTransactionMapper {
     public CreditCardTransaction getCreditCardUsageTransactionEntity(CreditCardTransactionRequest request) {
         CreditCardTransaction creditCardTransaction = new CreditCardTransaction();
         creditCardTransaction.setAmount(request.getAmount());
-        creditCardTransaction.setCreditCard(request.getCreditCardId());
+        creditCardTransaction.setCreditCardId(request.getCreditCardId());
         creditCardTransaction.setDescription(request.getDescription());
         creditCardTransaction.setCustomerId(request.getCustomerId());
         creditCardTransaction.setType(CreditCardTransactionType.USAGE);
@@ -25,7 +25,7 @@ public class CreditCardTransactionMapper {
     public CreditCardTransactionResponse getCreditCardTransactionResponse(Transaction transaction) {
         CreditCardTransactionResponse creditCardTransactionResponse = new CreditCardTransactionResponse();
         CreditCardTransaction creditCardTransaction = (CreditCardTransaction) transaction;
-        creditCardTransactionResponse.setCreditCard(creditCardTransaction.getCreditCard());
+        creditCardTransactionResponse.setCreditCard(creditCardTransaction.getCreditCardId());
         creditCardTransactionResponse.setAmount(creditCardTransaction.getAmount());
         creditCardTransactionResponse.setDescription(creditCardTransaction.getDescription());
         creditCardTransactionResponse.setCustomerId(creditCardTransaction.getCustomerId());
@@ -37,7 +37,7 @@ public class CreditCardTransactionMapper {
     public CreditCardTransaction getCreditCardPaymentTransactionEntity(CreditCardTransactionRequest request) {
         CreditCardTransaction creditCardTransaction = new CreditCardTransaction();
         creditCardTransaction.setAmount(request.getAmount());
-        creditCardTransaction.setCreditCard(request.getCreditCardId());
+        creditCardTransaction.setCreditCardId(request.getCreditCardId());
         creditCardTransaction.setDescription(request.getDescription());
         creditCardTransaction.setCustomerId(request.getCustomerId());
         creditCardTransaction.setType(CreditCardTransactionType.PAYMENT);

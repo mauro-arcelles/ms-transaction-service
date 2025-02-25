@@ -37,9 +37,8 @@ public class TransactionApiDelegateImpl implements TransactionsApiDelegate {
     }
 
     @Override
-    public Mono<ResponseEntity<Flux<CreditCardTransactionResponse>>> getCreditCardTransactionsByCreditCardNumber(String creditCardNumber,
-                                                                                                                 ServerWebExchange exchange) {
-        return Mono.just(ResponseEntity.ok().body(creditCardTransactionService.getCreditCardTransactionsByCardNumber(creditCardNumber)));
+    public Mono<ResponseEntity<Flux<CreditCardTransactionResponse>>> getCreditCardTransactionsByCreditCardId(String creditCardId, ServerWebExchange exchange) {
+        return Mono.just(ResponseEntity.ok().body(creditCardTransactionService.getCreditCardTransactionsById(creditCardId)));
     }
 
     @Override
@@ -103,5 +102,12 @@ public class TransactionApiDelegateImpl implements TransactionsApiDelegate {
                                                                                          ServerWebExchange exchange) {
         return debitCardTransactionService.createDebitCardTransaction(debitCardTransactionRequest)
             .map(ResponseEntity.status(HttpStatus.CREATED)::body);
+    }
+
+    @Override
+    public Mono<ResponseEntity<CustomerProductsCreditDebitCardsTransactionsResponse>> getCreditAndDebitTransactionsLimit(String creditCardId,
+                                                                                                                         String debitCardId, String limit,
+                                                                                                                         ServerWebExchange exchange) {
+        return transactionService.getCreditDebitCardTransactionsLimit(creditCardId, debitCardId, limit).map(ResponseEntity::ok);
     }
 }

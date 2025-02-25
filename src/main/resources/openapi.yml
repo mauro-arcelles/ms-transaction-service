@@ -45,12 +45,12 @@ paths:
                 items:
                   $ref: '#/components/schemas/AccountTransactionResponse'
 
-  /transactions/credit-card/by-card-number/{creditCardNumber}:
+  /transactions/credit-card/by-card-number/{creditCardId}:
     get:
-      summary: Get credit card transactions by credit card number
-      operationId: getCreditCardTransactionsByCreditCardNumber
+      summary: Get credit card transactions by credit card id
+      operationId: getCreditCardTransactionsByCreditCardId
       parameters:
-        - name: creditCardNumber
+        - name: creditCardId
           in: path
           required: true
           schema:
@@ -186,6 +186,33 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ResponseBase'
+
+  /transactions/customer-products/cards:
+    get:
+      summary: Get credit and debit cards transactions limited by parameter
+      operationId: getCreditAndDebitTransactionsLimit
+      parameters:
+        - name: creditCardId
+          in: query
+          schema:
+            type: string
+        - name: debitCardId
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of credit and debit card transactions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerProductsCreditDebitCardsTransactionsResponse'
+        '500':
+          description: Internal server error
 
   /transactions/customer-products/dni/{dni}:
     get:
@@ -612,3 +639,15 @@ components:
                     type: number
             totalAccountsCommissionFee:
               type: number
+
+    CustomerProductsCreditDebitCardsTransactionsResponse:
+      type: object
+      properties:
+        creditCardTransactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreditCardTransactionResponse'
+        debitCardTransactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/DebitCardTransactionResponse'

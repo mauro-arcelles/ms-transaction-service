@@ -8,5 +8,5 @@ import reactor.core.publisher.Mono;
 public interface CreditCardTransactionService {
     Mono<CreditCardTransactionResponse> createCreditCardTransaction(Mono<CreditCardTransactionRequest> request);
 
-    Flux<CreditCardTransactionResponse> getCreditCardTransactionsByCardNumber(String originAccountNumber);
+    Flux<CreditCardTransactionResponse> getCreditCardTransactionsById(String originAccountId);
 }

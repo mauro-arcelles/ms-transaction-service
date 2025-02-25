@@ -54,10 +54,10 @@ public class CreditCardTransactionServiceImpl implements CreditCardTransactionSe
     }
 
     @Override
-    public Flux<CreditCardTransactionResponse> getCreditCardTransactionsByCardNumber(String originAccountNumber) {
-        return creditCardService.getCreditCardByCardNumber(originAccountNumber)
+    public Flux<CreditCardTransactionResponse> getCreditCardTransactionsById(String originAccountId) {
+        return creditCardService.getCreditCardById(originAccountId)
             .flatMapMany(account ->
-                creditCardTransactionRepository.findAllByCreditCard(originAccountNumber)
+                creditCardTransactionRepository.findAllByCreditCardId(originAccountId)
                     .map(creditCardTransactionMapper::getCreditCardTransactionResponse)
             );
     }
@@ -78,6 +78,7 @@ public class CreditCardTransactionServiceImpl implements CreditCardTransactionSe
      * Validates customer based on transaction type:
      * - For PAYMENT: Verifies customer existence
      * - For USAGE: Validates if customer owns the credit card
+     *
      * @param tuple Contains transaction request and credit card response
      * @return Mono of validated tuple
      * @throws CreditCardCustomerMismatchException if customer is not card owner for usage transaction

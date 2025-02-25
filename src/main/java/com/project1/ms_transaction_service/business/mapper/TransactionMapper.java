@@ -2,7 +2,9 @@ package com.project1.ms_transaction_service.business.mapper;
 
 import com.project1.ms_transaction_service.model.*;
 import com.project1.ms_transaction_service.model.entity.AccountTransaction;
-import com.project1.ms_transaction_service.model.entity.Transaction;
+import com.project1.ms_transaction_service.model.entity.CreditCardTransaction;
+import com.project1.ms_transaction_service.model.entity.DebitCardTransaction;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -14,6 +16,12 @@ import java.util.stream.Collectors;
 
 @Component
 public class TransactionMapper {
+
+    @Autowired
+    private CreditCardTransactionMapper creditCardTransactionMapper;
+
+    @Autowired
+    private DebitCardTransactionMapper debitCardTransactionMapper;
 
     public CustomerProductsResponse getCustomerProductsResponse(CustomerResponse customer,
                                                                 List<AccountResponse> accounts,
@@ -101,6 +109,23 @@ public class TransactionMapper {
         commissions.setTotalAccountsCommissionFee(totalAccountCommissions);
         response.setCommissions(commissions);
         return response;
+    }
+
+    public CustomerProductsCreditDebitCardsTransactionsResponse getCreditDebitCardTransactionsResponse(List<CreditCardTransaction> creditCardTransactions,
+                                                                                                       List<DebitCardTransaction> debitCardTransactions) {
+        CustomerProductsCreditDebitCardsTransactionsResponse response = new CustomerProductsCreditDebitCardsTransactionsResponse();
+        response.setCreditCardTransactions(
+            creditCardTransactions.stream()
+                .map(creditCardTransactionMapper::getCreditCardTransactionResponse)
+                .collect(Collectors.toList())
+        );
+        response.setDebitCardTransactions(
+            debitCardTransactions.stream()
+                .map(debitCardTransactionMapper::getDebitCardTransactionResponse)
+                .collect(Collectors.toList())
+        );
+        return response;
+
     }
 
 }

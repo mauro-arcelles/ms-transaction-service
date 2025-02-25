@@ -16,7 +16,7 @@ import java.math.BigDecimal;
 @SuperBuilder(toBuilder = true)
 @TypeAlias("creditCardTransaction")
 public class CreditCardTransaction extends Transaction {
-    private String creditCard;
+    private String creditCardId;
 
     private String customerId;
 

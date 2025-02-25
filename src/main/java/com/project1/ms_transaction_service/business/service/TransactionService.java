@@ -15,4 +15,6 @@ public interface TransactionService {
     Mono<CustomerProductsAverageBalanceResponse> getAllCustomerProductsAvgBalanceCustomerId(String customerId);
 
     Mono<ProductsCommissionResponse> getProductsCommissionByRange(LocalDateTime startDate, LocalDateTime endDate);
+
+    Mono<CustomerProductsCreditDebitCardsTransactionsResponse> getCreditDebitCardTransactionsLimit(String creditCardId, String debitCardId, String limit);
 }
