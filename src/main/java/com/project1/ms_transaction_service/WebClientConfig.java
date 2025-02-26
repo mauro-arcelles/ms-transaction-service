@@ -1,6 +1,7 @@
 package com.project1.ms_transaction_service;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -17,24 +18,30 @@ public class WebClientConfig {
     @Value("${application.config.customer-service-url}")
     private String customerServiceBaseUrl;
 
+    @Bean
+    @LoadBalanced
+    public WebClient.Builder loadBalancedWebClientBuilder() {
+        return WebClient.builder();
+    }
+
     @Bean("accountWebClient")
-    public WebClient accountWebClient() {
-        return WebClient.builder()
-                .baseUrl(accountServiceBaseUrl)
-                .build();
+    public WebClient accountWebClient(WebClient.Builder webClientBuilder) {
+        return webClientBuilder
+            .baseUrl(accountServiceBaseUrl)
+            .build();
     }
 
     @Bean("creditWebClient")
-    public WebClient creditWebClient() {
-        return WebClient.builder()
-                .baseUrl(creditServiceBaseUrl)
-                .build();
+    public WebClient creditWebClient(WebClient.Builder webClientBuilder) {
+        return webClientBuilder
+            .baseUrl(creditServiceBaseUrl)
+            .build();
     }
 
     @Bean("customerWebClient")
-    public WebClient customerWebClient() {
-        return WebClient.builder()
-                .baseUrl(customerServiceBaseUrl)
-                .build();
+    public WebClient customerWebClient(WebClient.Builder webClientBuilder) {
+        return webClientBuilder
+            .baseUrl(customerServiceBaseUrl)
+            .build();
     }
 }
