@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientException;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -107,7 +108,7 @@ public class CreditServiceImpl implements CreditService {
         return Mono.error(new BadRequestException(CREDIT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Mono<CreditResponse> getCreditByIdFallback(String id, WebClientRequestException e) {
+    private Mono<CreditResponse> getCreditByIdFallback(String id, WebClientException e) {
         return Mono.error(new BadRequestException(CREDIT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
@@ -124,7 +125,7 @@ public class CreditServiceImpl implements CreditService {
         return Mono.error(new BadRequestException(CREDIT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Mono<CreditResponse> updateCreditByIdFallback(String creditId, CreditPatchRequest request, WebClientRequestException e) {
+    private Mono<CreditResponse> updateCreditByIdFallback(String creditId, CreditPatchRequest request, WebClientException e) {
         return Mono.error(new BadRequestException(CREDIT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
@@ -141,7 +142,7 @@ public class CreditServiceImpl implements CreditService {
         return Flux.error(new BadRequestException(CREDIT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Flux<CreditResponse> getCreditsByCustomerIdFallback(String id, WebClientRequestException e) {
+    private Flux<CreditResponse> getCreditsByCustomerIdFallback(String id, WebClientException e) {
         return Flux.error(new BadRequestException(CREDIT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 }

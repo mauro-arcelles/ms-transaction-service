@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientException;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -107,7 +108,7 @@ public class CustomerServiceImpl implements CustomerService {
         return Mono.error(new BadRequestException(CUSTOMER_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Mono<CustomerResponse> getCustomerByDniFallback(String id, WebClientRequestException e) {
+    private Mono<CustomerResponse> getCustomerByDniFallback(String id, WebClientException e) {
         return Mono.error(new BadRequestException(CUSTOMER_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
@@ -124,7 +125,7 @@ public class CustomerServiceImpl implements CustomerService {
         return Mono.error(new BadRequestException(CUSTOMER_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Mono<CustomerResponse> getCustomerByRucFallback(String id, WebClientRequestException e) {
+    private Mono<CustomerResponse> getCustomerByRucFallback(String id, WebClientException e) {
         return Mono.error(new BadRequestException(CUSTOMER_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
@@ -141,7 +142,7 @@ public class CustomerServiceImpl implements CustomerService {
         return Mono.error(new BadRequestException(CUSTOMER_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Mono<CustomerResponse> getCustomerByIdFallback(String id, WebClientRequestException e) {
+    private Mono<CustomerResponse> getCustomerByIdFallback(String id, WebClientException e) {
         return Mono.error(new BadRequestException(CUSTOMER_SERVICE_UNAVAILABLE_MESSAGE));
     }
 }

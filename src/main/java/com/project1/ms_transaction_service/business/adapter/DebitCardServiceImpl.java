@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientException;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -62,7 +63,7 @@ public class DebitCardServiceImpl implements DebitCardService {
         return Mono.error(new BadRequestException(ACCOUNT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Mono<DebitCardResponse> getDebitCardByIdFallback(String id, WebClientRequestException e) {
+    private Mono<DebitCardResponse> getDebitCardByIdFallback(String id, WebClientException e) {
         return Mono.error(new BadRequestException(ACCOUNT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 }

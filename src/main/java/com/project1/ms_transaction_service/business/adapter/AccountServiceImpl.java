@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientException;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -132,7 +133,7 @@ public class AccountServiceImpl implements AccountService {
         return Mono.error(new BadRequestException(ACCOUNT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Mono<AccountResponse> getAccountByAccountNumberFallback(String id, WebClientRequestException e) {
+    private Mono<AccountResponse> getAccountByAccountNumberFallback(String id, WebClientException e) {
         return Mono.error(new BadRequestException(ACCOUNT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
@@ -149,7 +150,7 @@ public class AccountServiceImpl implements AccountService {
         return Mono.error(new BadRequestException(ACCOUNT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Mono<AccountResponse> updateAccountFallback(String id, AccountPatchRequest request, WebClientRequestException e) {
+    private Mono<AccountResponse> updateAccountFallback(String id, AccountPatchRequest request, WebClientException e) {
         return Mono.error(new BadRequestException(ACCOUNT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
@@ -166,7 +167,7 @@ public class AccountServiceImpl implements AccountService {
         return Flux.error(new BadRequestException(ACCOUNT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Flux<AccountResponse> getAccountsByCustomerIdFallback(String id, WebClientRequestException e) {
+    private Flux<AccountResponse> getAccountsByCustomerIdFallback(String id, WebClientException e) {
         return Flux.error(new BadRequestException(ACCOUNT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
@@ -183,7 +184,7 @@ public class AccountServiceImpl implements AccountService {
         return Mono.error(new BadRequestException(ACCOUNT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Mono<AccountResponse> getAccountByIdFallback(String id, WebClientRequestException e) {
+    private Mono<AccountResponse> getAccountByIdFallback(String id, WebClientException e) {
         return Mono.error(new BadRequestException(ACCOUNT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 }
