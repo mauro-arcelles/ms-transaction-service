@@ -474,16 +474,6 @@ class AccountTransactionServiceImplTest {
     }
 
     @Test
-    void createAccountTransaction_InvalidType() {
-        AccountTransactionRequest request = new AccountTransactionRequest();
-        request.setType("INVALID");
-
-        StepVerifier.create(accountTransactionService.createAccountTransaction(Mono.just(request)))
-            .expectError(BadRequestException.class)
-            .verify();
-    }
-
-    @Test
     void getTransactionsByAccountNumber_Success() {
         String accountNumber = "123";
         AccountResponse account = new AccountResponse();

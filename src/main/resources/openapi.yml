@@ -314,7 +314,7 @@ components:
           maxLength: 40
         type:
           type: string
-          minLength: 1
+          x-field-extra-annotation: '@com.project1.ms_transaction_service.validation.EnumNamePattern(regexp = "DEPOSIT|WITHDRAWAL|TRANSFER")'
         amount:
           type: number
           minimum: 1

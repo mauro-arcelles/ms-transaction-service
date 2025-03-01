@@ -46,7 +46,6 @@ public class AccountTransactionServiceImpl implements AccountTransactionService 
     @Override
     public Mono<AccountTransactionResponse> createAccountTransaction(Mono<AccountTransactionRequest> request) {
         return request
-            .flatMap(this::validateTransactionType)
             .flatMap(this::validateTransactionRequest)
             .flatMap(req ->
                 getOriginAndDestinationAccounts(req)
@@ -57,24 +56,6 @@ public class AccountTransactionServiceImpl implements AccountTransactionService 
             .map(accountTransactionMapper::getAccountTransactionResponse)
             .doOnSuccess(t -> log.info("Transaction created: {}", t.getId()))
             .doOnError(e -> log.error("Error creating transaction", e));
-    }
-
-    /**
-     * Validate if the transaction type sent in request body is part of the enum one
-     *
-     * @param req Transaction request
-     * @return Mono of TransactionRequest
-     */
-    private Mono<AccountTransactionRequest> validateTransactionType(AccountTransactionRequest req) {
-        try {
-            AccountTransactionType.valueOf(req.getType());
-            return Mono.just(req);
-        } catch (IllegalArgumentException ex) {
-            String result = Arrays.stream(AccountTransactionType.values())
-                .map(Enum::name)
-                .collect(Collectors.joining("|"));
-            return Mono.error(new BadRequestException("Invalid transaction type. Should be one of: " + result));
-        }
     }
 
     /**
