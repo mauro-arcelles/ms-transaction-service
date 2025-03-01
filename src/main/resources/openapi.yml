@@ -448,6 +448,11 @@ components:
       properties:
         amountPaid:
           type: number
+        nextPaymentDueDate:
+          type: string
+          format: date-time
+        expectedPaymentToDate:
+          type: number
       required:
         - amountPaid
 
@@ -562,6 +567,11 @@ components:
           type: number
         identifier:
           type: string
+        nextPaymentDueDate:
+          type: string
+          format: date-time
+        expectedPaymentToDate:
+          type: number
 
     CustomerResponse:
       type: object

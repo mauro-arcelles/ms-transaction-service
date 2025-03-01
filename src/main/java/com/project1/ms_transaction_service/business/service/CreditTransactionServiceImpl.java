@@ -42,7 +42,7 @@ public class CreditTransactionServiceImpl implements CreditTransactionService {
             .flatMap(this::validateCustomer)
             .flatMap(this::createCreditTransaction)
             .flatMap(this::saveCreditTransaction)
-            .flatMap(this::updateCreditAmount)
+            .flatMap(this::updateCredit)
             .map(creditTransactionMapper::getCreditPaymentTransactionResponse);
     }
 
@@ -86,12 +86,12 @@ public class CreditTransactionServiceImpl implements CreditTransactionService {
     }
 
     /**
-     * Updates the credit amount paid after transaction.
+     * Updates the credit amount paid, nextPaymentDueDate and expectedPaymentToDate after transaction.
      *
      * @param tuple Tuple containing credit response and saved transaction
      * @return Mono containing the updated credit transaction
      */
-    private Mono<CreditTransaction> updateCreditAmount(Tuple2<CreditResponse, CreditTransaction> tuple) {
+    private Mono<CreditTransaction> updateCredit(Tuple2<CreditResponse, CreditTransaction> tuple) {
         CreditResponse creditResponse = tuple.getT1();
         CreditTransaction creditTransaction = tuple.getT2();
 
@@ -99,7 +99,12 @@ public class CreditTransactionServiceImpl implements CreditTransactionService {
             CreditPatchRequest patchRequest = new CreditPatchRequest();
             BigDecimal newAmountPaid = creditResponse.getAmountPaid().add(creditResponse.getMonthlyPayment());
             patchRequest.setAmountPaid(newAmountPaid);
-
+            if (creditResponse.getNextPaymentDueDate() != null) {
+                patchRequest.setNextPaymentDueDate(creditResponse.getNextPaymentDueDate().plusMonths(1));
+            }
+            if (creditResponse.getExpectedPaymentToDate() != null) {
+                patchRequest.setExpectedPaymentToDate(creditResponse.getExpectedPaymentToDate().add(creditResponse.getMonthlyPayment()));
+            }
             return creditService.updateCreditById(creditTransaction.getCreditId(), patchRequest)
                 .map(cr -> creditTransaction);
         }
