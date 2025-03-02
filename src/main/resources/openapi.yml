@@ -475,6 +475,18 @@ components:
         description:
           type: string
 
+    CreateWalletTransactionRequest:
+      type: object
+      properties:
+        originWalletId:
+          type: string
+        destinationWalletId:
+          type: string
+        amount:
+          type: number
+        type:
+          type: string
+
     AccountPatchRequest:
       type: object
       properties:

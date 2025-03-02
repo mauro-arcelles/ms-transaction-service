@@ -1,4 +1,4 @@
-package com.project1.ms_transaction_service;
+package com.project1.ms_transaction_service.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
