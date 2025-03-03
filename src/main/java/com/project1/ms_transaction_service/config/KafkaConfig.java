@@ -21,9 +21,6 @@ public class KafkaConfig {
     @Value("${application.config.kafka.bootstrap-servers}")
     private String bootstrapServers;
 
-    @Value("${application.config.kafka.consumer.properties.spring.json.trusted.packages}")
-    private String trustedPackages;
-
     @Bean
     public ConsumerFactory<String, String> consumerFactory() {
         Map<String, Object> config = new HashMap<>();
@@ -31,7 +28,6 @@ public class KafkaConfig {
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        config.put(JsonDeserializer.TRUSTED_PACKAGES, trustedPackages);
         return new DefaultKafkaConsumerFactory<>(config);
     }
 
