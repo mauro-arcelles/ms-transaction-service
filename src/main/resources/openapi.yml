@@ -548,6 +548,14 @@ components:
           format: date-time
         status:
           type: string
+      required:
+        - id
+        - documentNumber
+        - phone
+        - email
+        - balance
+        - creationDate
+        - status
 
     UpdateBootcoinWalletRequest:
       type: object

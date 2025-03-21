@@ -169,7 +169,7 @@ class CreditCardTransactionServiceImplTest {
         card.setId("123");
         card.setCustomerId("456");
         card.setCreditLimit(new BigDecimal("1000"));
-        card.setUsedAmount(new BigDecimal("100")); // Lower used amount
+        card.setUsedAmount(new BigDecimal("100"));
 
         when(creditCardService.getCreditCardById("123")).thenReturn(Mono.just(card));
         when(customerService.getCustomerById("456")).thenReturn(Mono.just(new CustomerResponse()));

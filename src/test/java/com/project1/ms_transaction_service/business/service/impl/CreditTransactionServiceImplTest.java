@@ -18,6 +18,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 import static org.mockito.Mockito.*;
 
@@ -49,6 +50,48 @@ class CreditTransactionServiceImplTest {
         creditResponse.setAmountPaid(BigDecimal.valueOf(100));
         creditResponse.setMonthlyPayment(BigDecimal.valueOf(50));
         creditResponse.setTotalAmount(BigDecimal.valueOf(1000));
+
+        CreditTransaction transaction = new CreditTransaction();
+        transaction.setCreditId("123");
+
+        CreditPaymentTransactionResponse response = new CreditPaymentTransactionResponse();
+        response.setCreditId("123");
+
+        when(creditService.getCreditById("123"))
+            .thenReturn(Mono.just(creditResponse));
+
+        when(customerService.getCustomerById("456"))
+            .thenReturn(Mono.just(new CustomerResponse()));
+
+        when(creditTransactionMapper.getCreditPaymentTransactionEntity(any()))
+            .thenReturn(transaction);
+
+        when(creditTransactionRepository.save(any(CreditTransaction.class)))
+            .thenReturn(Mono.just(transaction));
+
+        when(creditService.updateCreditById(anyString(), any(CreditPatchRequest.class)))
+            .thenReturn(Mono.just(creditResponse));
+
+        when(creditTransactionMapper.getCreditPaymentTransactionResponse(any()))
+            .thenReturn(response);
+
+        StepVerifier.create(creditTransactionService.createCreditPaymentTransaction(Mono.just(request)))
+            .expectNext(response)
+            .verifyComplete();
+    }
+
+    @Test
+    void createCreditPaymentTransaction_Success2() {
+        CreditPaymentTransactionRequest request = new CreditPaymentTransactionRequest();
+        request.setCreditId("123");
+        request.setCustomerId("456");
+
+        CreditResponse creditResponse = new CreditResponse();
+        creditResponse.setAmountPaid(BigDecimal.valueOf(100));
+        creditResponse.setMonthlyPayment(BigDecimal.valueOf(50));
+        creditResponse.setTotalAmount(BigDecimal.valueOf(1000));
+        creditResponse.setNextPaymentDueDate(LocalDateTime.now().plusMonths(1));
+        creditResponse.setExpectedPaymentToDate(BigDecimal.valueOf(900));
 
         CreditTransaction transaction = new CreditTransaction();
         transaction.setCreditId("123");
