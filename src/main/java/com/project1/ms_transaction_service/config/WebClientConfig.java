@@ -18,6 +18,9 @@ public class WebClientConfig {
     @Value("${application.config.customer-service-url}")
     private String customerServiceBaseUrl;
 
+    @Value("${application.config.bootcoin-service-url}")
+    private String bootcoinServiceBaseUrl;
+
     @Bean
     @LoadBalanced
     public WebClient.Builder loadBalancedWebClientBuilder() {
@@ -42,6 +45,13 @@ public class WebClientConfig {
     public WebClient customerWebClient(WebClient.Builder webClientBuilder) {
         return webClientBuilder
             .baseUrl(customerServiceBaseUrl)
+            .build();
+    }
+
+    @Bean("bootcoinWebClient")
+    public WebClient bootcoinWebClient(WebClient.Builder webClientBuilder) {
+        return webClientBuilder
+            .baseUrl(bootcoinServiceBaseUrl)
             .build();
     }
 }

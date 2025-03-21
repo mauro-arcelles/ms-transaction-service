@@ -487,6 +487,61 @@ components:
         type:
           type: string
 
+    BootcoinTransactionRequest:
+      type: object
+      properties:
+        id:
+          type: string
+
+    GetExchangeRequestByTransactionIdResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        amount:
+          type: number
+        paymentMethod:
+          type: string
+        buyRate:
+          type: number
+          format: double
+        requestOwnerUserId:
+          type: string
+        requestAccepterUserId:
+          type: string
+        status:
+          type: string
+        creationDate:
+          type: string
+          format: date-time
+
+    CreateBootcoinWalletResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        documentNumber:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        balance:
+          type: number
+        creationDate:
+          type: string
+          format: date-time
+        status:
+          type: string
+
+    UpdateBootcoinWalletRequest:
+      type: object
+      properties:
+        balance:
+          type: number
+        status:
+          type: string
+
     AccountPatchRequest:
       type: object
       properties:
@@ -674,3 +729,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/DebitCardTransactionResponse'
+
+    UpdateExchangeRequestRequest:
+      type: object
+      properties:
+        status:
+          type: string
+        message:
+          type: string
