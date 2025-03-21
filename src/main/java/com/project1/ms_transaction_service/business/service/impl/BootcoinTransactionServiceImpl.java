@@ -1,11 +1,13 @@
 package com.project1.ms_transaction_service.business.service.impl;
 
 import com.project1.ms_transaction_service.business.adapter.BootcoinService;
+import com.project1.ms_transaction_service.business.adapter.YankiService;
 import com.project1.ms_transaction_service.business.service.BootcoinTransactionService;
 import com.project1.ms_transaction_service.exception.BadRequestException;
 import com.project1.ms_transaction_service.model.CreateBootcoinWalletResponse;
 import com.project1.ms_transaction_service.model.UpdateBootcoinWalletRequest;
 import com.project1.ms_transaction_service.model.UpdateExchangeRequestRequest;
+import com.project1.ms_transaction_service.model.UpdateYankiWalletRequest;
 import com.project1.ms_transaction_service.model.entity.ExchangeRequestStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,12 +15,16 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 
 @Service
 @Slf4j
 public class BootcoinTransactionServiceImpl implements BootcoinTransactionService {
     @Autowired
     private BootcoinService bootcoinService;
+
+    @Autowired
+    private YankiService yankiService;
 
     @Override
     public Mono<Void> processBootcoinTransaction(String transactionId) {
@@ -34,40 +40,77 @@ public class BootcoinTransactionServiceImpl implements BootcoinTransactionServic
                         // verify payment method within exchangeRequest to discount the amount in the respective payment method
                         if (requestOwnerWallet.getBalance() != null && requestAccepterWallet.getBalance() != null) {
                             if (exchangeRequest.getAmount().compareTo(requestAccepterWallet.getBalance()) > 0) {
-                                log.error("Insufficient balance in wallet of the request accepter");
+                                log.error("Insufficient bootcoins balance in request accepter wallet");
                                 UpdateExchangeRequestRequest updateExchangeRequestRequest = new UpdateExchangeRequestRequest();
                                 updateExchangeRequestRequest.status(ExchangeRequestStatus.REJECTED.toString());
-                                updateExchangeRequestRequest.setMessage("Insufficient balance in request accepter wallet");
+                                updateExchangeRequestRequest.setMessage("Insufficient bootcoins in request accepter wallet");
 
                                 return bootcoinService.updateExchangeRequest(exchangeRequest.getId(), updateExchangeRequestRequest)
                                     .doOnError(e -> log.error("Error updating exchange request"));
                             }
 
                             // update payment method balance
+                            if (exchangeRequest.getPaymentMethod() != null) {
+                                if (exchangeRequest.getPaymentMethod().equals("YANKI")) {
+                                    return yankiService.getYankiWalletByUserId(exchangeRequest.getRequestOwnerUserId())
+                                        .flatMap(yankiWallet -> {
+                                            BigDecimal totalAmount =
+                                                exchangeRequest.getAmount().multiply(BigDecimal.valueOf(exchangeRequest.getBuyRate()));
 
-                            BigDecimal newOwnerWalletBalance = requestOwnerWallet.getBalance().add(exchangeRequest.getAmount());
-                            BigDecimal newAccepterWalletBalance = requestAccepterWallet.getBalance().subtract(exchangeRequest.getAmount());
+                                            if (yankiWallet.getBalance().compareTo(totalAmount) < 0) {
+                                                log.info("Insufficient balance in the yanki wallet of the request owner");
+                                                UpdateExchangeRequestRequest updateExchangeRequestRequest = new UpdateExchangeRequestRequest();
+                                                updateExchangeRequestRequest.status(ExchangeRequestStatus.REJECTED.toString());
+                                                updateExchangeRequestRequest.setMessage("Insufficient balance in the yanki wallet of the request owner");
 
-                            UpdateBootcoinWalletRequest updateOwnerWalletRequest = new UpdateBootcoinWalletRequest();
-                            updateOwnerWalletRequest.balance(newOwnerWalletBalance);
+                                                return bootcoinService.updateExchangeRequest(exchangeRequest.getId(), updateExchangeRequestRequest)
+                                                    .doOnError(t -> log.error("Error updating exchange request", t));
+                                            }
 
-                            UpdateBootcoinWalletRequest updateAccepterWalletRequest = new UpdateBootcoinWalletRequest();
-                            updateAccepterWalletRequest.balance(newAccepterWalletBalance);
+                                            BigDecimal newOwnerYankiWalletBalance = yankiWallet.getBalance().subtract(totalAmount);
+                                            UpdateYankiWalletRequest updateOwnerYankiWalletRequest = new UpdateYankiWalletRequest();
+                                            updateOwnerYankiWalletRequest.balance(newOwnerYankiWalletBalance);
 
-                            log.info("Updating bootcoin wallets");
+                                            return yankiService.updateYankiWallet(yankiWallet.getId(), updateOwnerYankiWalletRequest)
+                                                .doOnError(e -> log.error("Error updating yanki wallet"))
+                                                .then(Mono.just(exchangeRequest))
+                                                .onErrorResume(e -> Mono.error(new BadRequestException("Error updating yanki wallet")));
+                                        })
+                                        .flatMap(e -> {
+                                            BigDecimal newOwnerWalletBalance = requestOwnerWallet.getBalance().add(exchangeRequest.getAmount());
+                                            BigDecimal newAccepterWalletBalance = requestAccepterWallet.getBalance().subtract(exchangeRequest.getAmount());
 
-                            return Mono.zip(bootcoinService.updateBootcoinWallet(requestOwnerWallet.getId(), updateOwnerWalletRequest),
-                                    bootcoinService.updateBootcoinWallet(requestAccepterWallet.getId(), updateAccepterWalletRequest))
-                                .doOnSuccess(e -> log.info("Bootcoin wallets updated successfully"))
-                                .doOnError(e -> {
-                                    log.error("Bootcoin wallets update failed", e);
-                                    UpdateExchangeRequestRequest updateExchangeRequestRequest = new UpdateExchangeRequestRequest();
-                                    updateExchangeRequestRequest.status(ExchangeRequestStatus.REJECTED.toString());
-                                    updateExchangeRequestRequest.setMessage("Bootcoin wallets update failed");
+                                            UpdateBootcoinWalletRequest updateOwnerWalletRequest = new UpdateBootcoinWalletRequest();
+                                            updateOwnerWalletRequest.balance(newOwnerWalletBalance);
 
-                                    bootcoinService.updateExchangeRequest(exchangeRequest.getId(), updateExchangeRequestRequest)
-                                        .doOnError(t -> log.error("Error updating exchange request", t));
-                                });
+                                            UpdateBootcoinWalletRequest updateAccepterWalletRequest = new UpdateBootcoinWalletRequest();
+                                            updateAccepterWalletRequest.balance(newAccepterWalletBalance);
+
+                                            log.info("Updating bootcoin wallets");
+
+                                            return Mono.zip(bootcoinService.updateBootcoinWallet(requestOwnerWallet.getId(), updateOwnerWalletRequest),
+                                                    bootcoinService.updateBootcoinWallet(requestAccepterWallet.getId(), updateAccepterWalletRequest))
+                                                .doOnSuccess(__ -> {
+                                                    log.info("Bootcoin wallets updated successfully");
+                                                    UpdateExchangeRequestRequest updateExchangeRequestRequest = new UpdateExchangeRequestRequest();
+                                                    updateExchangeRequestRequest.status(ExchangeRequestStatus.APPROVED.toString());
+                                                    updateExchangeRequestRequest.setMessage("Bootcoin wallets updated successfully");
+
+                                                    bootcoinService.updateExchangeRequest(exchangeRequest.getId(), updateExchangeRequestRequest)
+                                                        .doOnError(t -> log.error("Error updating exchange request", t));
+                                                })
+                                                .doOnError(__ -> {
+                                                    log.error("Bootcoin wallets update failed", __);
+                                                    UpdateExchangeRequestRequest updateExchangeRequestRequest = new UpdateExchangeRequestRequest();
+                                                    updateExchangeRequestRequest.status(ExchangeRequestStatus.REJECTED.toString());
+                                                    updateExchangeRequestRequest.setMessage("Bootcoin wallets update failed");
+
+                                                    bootcoinService.updateExchangeRequest(exchangeRequest.getId(), updateExchangeRequestRequest)
+                                                        .doOnError(t -> log.error("Error updating exchange request", t));
+                                                });
+                                        });
+                                }
+                            }
                         }
 
                         log.error("Error updating bootcoin wallet");

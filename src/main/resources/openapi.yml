@@ -520,6 +520,15 @@ components:
         creationDate:
           type: string
           format: date-time
+      required:
+        - id
+        - amount
+        - paymentMethod
+        - buyRate
+        - requestOwnerUserId
+        - requestAccepterUserId
+        - status
+        - creationDate
 
     CreateBootcoinWalletResponse:
       type: object
@@ -766,3 +775,13 @@ components:
           type: string
         balance:
           type: number
+      required:
+        - id
+        - documentNumber
+        - phoneNumber
+        - phoneImei
+        - email
+        - status
+        - creationDate
+        - userId
+        - balance

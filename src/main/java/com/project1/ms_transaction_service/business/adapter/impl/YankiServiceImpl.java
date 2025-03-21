@@ -55,6 +55,31 @@ public class YankiServiceImpl implements YankiService {
             .doOnSuccess(success -> log.info("[getYankiWallet] Success!"));
     }
 
+    @CircuitBreaker(name = "yankiService", fallbackMethod = "getYankiWalletByUserIdFallback")
+    @TimeLimiter(name = "yankiService")
+    @Override
+    public Mono<GetYankiWalletResponse> getYankiWalletByUserId(String userId) {
+        return yankiWebClient.get()
+            .uri("/wallets/by-user-id/{userId}", userId)
+            .retrieve()
+            .onStatus(HttpStatus::is4xxClientError, response ->
+                response.bodyToMono(ResponseBase.class)
+                    .flatMap(error -> {
+                        if (response.statusCode().equals(HttpStatus.NOT_FOUND)) {
+                            return Mono.error(new NotFoundException(error.getMessage()));
+                        } else if (response.statusCode().equals(HttpStatus.BAD_REQUEST)) {
+                            return Mono.error(new BadRequestException(error.getMessage()));
+                        } else {
+                            return Mono.error(new InternalServerErrorException(error.getMessage()));
+                        }
+                    })
+            )
+            .bodyToMono(GetYankiWalletResponse.class)
+            .doOnNext(response -> log.info("Raw response: {}", response))
+            .doOnError(error -> log.error("Error: {}", error.getMessage()))
+            .doOnSuccess(success -> log.info("[getYankiWallet] Success!"));
+    }
+
     @CircuitBreaker(name = "yankiService", fallbackMethod = "updateYankiWalletFallback")
     @TimeLimiter(name = "yankiService")
     @Override
@@ -109,6 +134,23 @@ public class YankiServiceImpl implements YankiService {
     }
 
     private Mono<Void> updateYankiWalletFallback(String id, UpdateYankiWalletRequest request, WebClientException e) {
+        return Mono.error(new BadRequestException(YANKI_SERVICE_UNAVAILABLE_MESSAGE));
+    }
+
+    // getYankiWalletByUserIdFallback
+    private Mono<GetYankiWalletResponse> getYankiWalletByUserIdFallback(String id, InternalServerErrorException e) {
+        return Mono.error(new BadRequestException(YANKI_SERVICE_UNAVAILABLE_MESSAGE));
+    }
+
+    private Mono<GetYankiWalletResponse> getYankiWalletByUserIdFallback(String id, TimeoutException e) {
+        return Mono.error(new BadRequestException(YANKI_SERVICE_UNAVAILABLE_MESSAGE));
+    }
+
+    private Mono<GetYankiWalletResponse> getYankiWalletByUserIdFallback(String id, CallNotPermittedException e) {
+        return Mono.error(new BadRequestException(YANKI_SERVICE_UNAVAILABLE_MESSAGE));
+    }
+
+    private Mono<GetYankiWalletResponse> getYankiWalletByUserIdFallback(String id, WebClientException e) {
         return Mono.error(new BadRequestException(YANKI_SERVICE_UNAVAILABLE_MESSAGE));
     }
 }

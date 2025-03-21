@@ -7,5 +7,7 @@ import reactor.core.publisher.Mono;
 public interface YankiService {
     Mono<GetYankiWalletResponse> getYankiWallet(String id);
 
+    Mono<GetYankiWalletResponse> getYankiWalletByUserId(String userId);
+
     Mono<Void> updateYankiWallet(String id, UpdateYankiWalletRequest request);
 }
