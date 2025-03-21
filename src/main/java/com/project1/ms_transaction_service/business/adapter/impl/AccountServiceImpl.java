@@ -1,11 +1,11 @@
-package com.project1.ms_transaction_service.business.adapter;
+package com.project1.ms_transaction_service.business.adapter.impl;
 
+import com.project1.ms_transaction_service.business.adapter.AccountService;
 import com.project1.ms_transaction_service.exception.BadRequestException;
 import com.project1.ms_transaction_service.exception.InternalServerErrorException;
 import com.project1.ms_transaction_service.exception.NotFoundException;
 import com.project1.ms_transaction_service.model.AccountPatchRequest;
 import com.project1.ms_transaction_service.model.AccountResponse;
-import com.project1.ms_transaction_service.model.CustomerResponse;
 import com.project1.ms_transaction_service.model.ResponseBase;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -16,7 +16,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientException;
-import org.springframework.web.reactive.function.client.WebClientRequestException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 

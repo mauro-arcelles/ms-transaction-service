@@ -21,6 +21,9 @@ public class WebClientConfig {
     @Value("${application.config.bootcoin-service-url}")
     private String bootcoinServiceBaseUrl;
 
+    @Value("${application.config.yanki-service-url}")
+    private String yankiServiceBaseUrl;
+
     @Bean
     @LoadBalanced
     public WebClient.Builder loadBalancedWebClientBuilder() {
@@ -52,6 +55,13 @@ public class WebClientConfig {
     public WebClient bootcoinWebClient(WebClient.Builder webClientBuilder) {
         return webClientBuilder
             .baseUrl(bootcoinServiceBaseUrl)
+            .build();
+    }
+
+    @Bean("yankiWebClient")
+    public WebClient yankiWebClient(WebClient.Builder webClientBuilder) {
+        return webClientBuilder
+            .baseUrl(yankiServiceBaseUrl)
             .build();
     }
 }

@@ -20,7 +20,7 @@ public class WalletTransaction extends Transaction {
 
     private String destinationWalletId;
 
-    private WalletTransactionType type;
+    private String type;
 
     private BigDecimal amount;
 }

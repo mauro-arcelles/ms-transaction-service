@@ -1,5 +1,6 @@
 package com.project1.ms_transaction_service.business.adapter;
 
+import com.project1.ms_transaction_service.business.adapter.impl.CreditCardServiceImpl;
 import com.project1.ms_transaction_service.model.CreditCardPatchRequest;
 import com.project1.ms_transaction_service.model.CreditCardResponse;
 import org.junit.jupiter.api.Test;

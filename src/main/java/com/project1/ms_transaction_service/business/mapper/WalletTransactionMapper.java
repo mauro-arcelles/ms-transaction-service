@@ -20,7 +20,7 @@ public class WalletTransactionMapper {
         walletTransaction.setAmount(request.getAmount());
         walletTransaction.setOriginWalletId(request.getOriginWalletId());
         walletTransaction.setDestinationWalletId(request.getDestinationWalletId());
-        walletTransaction.setType(WalletTransactionType.valueOf(request.getType()));
+        walletTransaction.setType(request.getType());
         walletTransaction.setDate(LocalDateTime.now(clock));
         return walletTransaction;
     }

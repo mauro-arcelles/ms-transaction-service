@@ -1,5 +1,6 @@
-package com.project1.ms_transaction_service.business.adapter;
+package com.project1.ms_transaction_service.business.adapter.impl;
 
+import com.project1.ms_transaction_service.business.adapter.CreditCardService;
 import com.project1.ms_transaction_service.exception.BadRequestException;
 import com.project1.ms_transaction_service.exception.InternalServerErrorException;
 import com.project1.ms_transaction_service.exception.NotFoundException;
@@ -13,14 +14,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientException;
-import org.springframework.web.reactive.function.client.WebClientRequestException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.concurrent.TimeoutException;
 
 @Service
-public class CreditServiceImpl implements CreditService {
+public class CreditCardServiceImpl implements CreditCardService {
 
     final String CREDIT_SERVICE_UNAVAILABLE_MESSAGE = "Credit service unavailable. Retry again later";
 
@@ -28,12 +28,12 @@ public class CreditServiceImpl implements CreditService {
     @Qualifier("creditWebClient")
     private WebClient creditWebClient;
 
-    @CircuitBreaker(name = "creditService", fallbackMethod = "getCreditByIdFallback")
+    @CircuitBreaker(name = "creditService", fallbackMethod = "getCreditCardByCardNumberFallback")
     @TimeLimiter(name = "creditService")
     @Override
-    public Mono<CreditResponse> getCreditById(String creditId) {
+    public Mono<CreditCardResponse> getCreditCardByCardNumber(String cardNumber) {
         return creditWebClient.get()
-            .uri("/credit/{creditId}", creditId)
+            .uri("/credit-card/by-card-number/{cardNumber}", cardNumber)
             .retrieve()
             .onStatus(HttpStatus::is4xxClientError, response ->
                 response.bodyToMono(ResponseBase.class)
@@ -47,16 +47,16 @@ public class CreditServiceImpl implements CreditService {
                         }
                     })
             )
-            .bodyToMono(CreditResponse.class);
+            .bodyToMono(CreditCardResponse.class);
     }
 
-    @CircuitBreaker(name = "creditService", fallbackMethod = "updateCreditByIdFallback")
+    @CircuitBreaker(name = "creditService", fallbackMethod = "updateCreditCardFallback")
     @TimeLimiter(name = "creditService")
     @Override
-    public Mono<CreditResponse> updateCreditById(String creditId, CreditPatchRequest request) {
+    public Mono<CreditCardResponse> updateCreditCard(String id, CreditCardPatchRequest request) {
         return creditWebClient.patch()
-            .uri("/credit/{creditId}", creditId)
-            .body(Mono.just(request), CreditPatchRequest.class)
+            .uri("/credit-card/{id}", id)
+            .body(Mono.just(request), CreditCardPatchRequest.class)
             .retrieve()
             .onStatus(HttpStatus::is4xxClientError, response ->
                 response.bodyToMono(ResponseBase.class)
@@ -70,15 +70,15 @@ public class CreditServiceImpl implements CreditService {
                         }
                     })
             )
-            .bodyToMono(CreditResponse.class);
+            .bodyToMono(CreditCardResponse.class);
     }
 
-    @CircuitBreaker(name = "creditService", fallbackMethod = "getCreditsByCustomerIdFallback")
+    @CircuitBreaker(name = "creditService", fallbackMethod = "getCreditCardsByCustomerIdFallback")
     @TimeLimiter(name = "creditService")
     @Override
-    public Flux<CreditResponse> getCreditsByCustomerId(String customerId) {
+    public Flux<CreditCardResponse> getCreditCardsByCustomerId(String customerId) {
         return creditWebClient.get()
-            .uri("/credit/by-customer/{customerId}", customerId)
+            .uri("/credit-card/by-customer/{customerId}", customerId)
             .retrieve()
             .onStatus(HttpStatus::is4xxClientError, response ->
                 response.bodyToMono(ResponseBase.class)
@@ -92,57 +92,97 @@ public class CreditServiceImpl implements CreditService {
                         }
                     })
             )
-            .bodyToFlux(CreditResponse.class);
+            .bodyToFlux(CreditCardResponse.class);
     }
 
-    // getCreditByIdFallback
-    private Mono<CreditResponse> getCreditByIdFallback(String id, InternalServerErrorException e) {
+    @CircuitBreaker(name = "creditService", fallbackMethod = "getCreditCardByIdFallback")
+    @TimeLimiter(name = "creditService")
+    @Override
+    public Mono<CreditCardResponse> getCreditCardById(String creditCardId) {
+        return creditWebClient.get()
+            .uri("/credit-card/{creditCardId}", creditCardId)
+            .retrieve()
+            .onStatus(HttpStatus::is4xxClientError, response ->
+                response.bodyToMono(ResponseBase.class)
+                    .flatMap(error -> {
+                        if (response.statusCode().equals(HttpStatus.NOT_FOUND)) {
+                            return Mono.error(new NotFoundException(error.getMessage()));
+                        } else if (response.statusCode().equals(HttpStatus.BAD_REQUEST)) {
+                            return Mono.error(new BadRequestException(error.getMessage()));
+                        } else {
+                            return Mono.error(new InternalServerErrorException(error.getMessage()));
+                        }
+                    })
+            )
+            .bodyToMono(CreditCardResponse.class);
+    }
+
+    // getCreditCardByCardNumberFallback
+    private Mono<CreditCardResponse> getCreditCardByCardNumberFallback(String id, InternalServerErrorException e) {
         return Mono.error(new BadRequestException(CREDIT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Mono<CreditResponse> getCreditByIdFallback(String id, TimeoutException e) {
+    private Mono<CreditCardResponse> getCreditCardByCardNumberFallback(String id, TimeoutException e) {
         return Mono.error(new BadRequestException(CREDIT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Mono<CreditResponse> getCreditByIdFallback(String id, CallNotPermittedException e) {
+    private Mono<CreditCardResponse> getCreditCardByCardNumberFallback(String id, CallNotPermittedException e) {
         return Mono.error(new BadRequestException(CREDIT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Mono<CreditResponse> getCreditByIdFallback(String id, WebClientException e) {
+    private Mono<CreditCardResponse> getCreditCardByCardNumberFallback(String id, WebClientException e) {
         return Mono.error(new BadRequestException(CREDIT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    // updateCreditByIdFallback
-    private Mono<CreditResponse> updateCreditByIdFallback(String creditId, CreditPatchRequest request, InternalServerErrorException e) {
+    // updateCreditCardFallback
+    private Mono<CreditCardResponse> updateCreditCardFallback(String id, CreditCardPatchRequest request, InternalServerErrorException e) {
         return Mono.error(new BadRequestException(CREDIT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Mono<CreditResponse> updateCreditByIdFallback(String creditId, CreditPatchRequest request, TimeoutException e) {
+    private Mono<CreditCardResponse> updateCreditCardFallback(String id, CreditCardPatchRequest request, TimeoutException e) {
         return Mono.error(new BadRequestException(CREDIT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Mono<CreditResponse> updateCreditByIdFallback(String creditId, CreditPatchRequest request, CallNotPermittedException e) {
+    private Mono<CreditCardResponse> updateCreditCardFallback(String id, CreditCardPatchRequest request, CallNotPermittedException e) {
         return Mono.error(new BadRequestException(CREDIT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Mono<CreditResponse> updateCreditByIdFallback(String creditId, CreditPatchRequest request, WebClientException e) {
+    private Mono<CreditCardResponse> updateCreditCardFallback(String id, CreditCardPatchRequest request, WebClientException e) {
         return Mono.error(new BadRequestException(CREDIT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    // getCreditsByCustomerIdFallback
-    private Flux<CreditResponse> getCreditsByCustomerIdFallback(String id, InternalServerErrorException e) {
+    // getCreditCardsByCustomerIdFallback
+    private Flux<CreditCardResponse> getCreditCardsByCustomerIdFallback(String id, InternalServerErrorException e) {
         return Flux.error(new BadRequestException(CREDIT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Flux<CreditResponse> getCreditsByCustomerIdFallback(String id, TimeoutException e) {
+    private Flux<CreditCardResponse> getCreditCardsByCustomerIdFallback(String id, TimeoutException e) {
         return Flux.error(new BadRequestException(CREDIT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Flux<CreditResponse> getCreditsByCustomerIdFallback(String id, CallNotPermittedException e) {
+    private Flux<CreditCardResponse> getCreditCardsByCustomerIdFallback(String id, CallNotPermittedException e) {
         return Flux.error(new BadRequestException(CREDIT_SERVICE_UNAVAILABLE_MESSAGE));
     }
 
-    private Flux<CreditResponse> getCreditsByCustomerIdFallback(String id, WebClientException e) {
+    private Flux<CreditCardResponse> getCreditCardsByCustomerIdFallback(String id, WebClientException e) {
         return Flux.error(new BadRequestException(CREDIT_SERVICE_UNAVAILABLE_MESSAGE));
     }
+
+    // getCreditCardByIdFallback
+    private Mono<CreditCardResponse> getCreditCardByIdFallback(String id, InternalServerErrorException e) {
+        return Mono.error(new BadRequestException(CREDIT_SERVICE_UNAVAILABLE_MESSAGE));
+    }
+
+    private Mono<CreditCardResponse> getCreditCardByIdFallback(String id, TimeoutException e) {
+        return Mono.error(new BadRequestException(CREDIT_SERVICE_UNAVAILABLE_MESSAGE));
+    }
+
+    private Mono<CreditCardResponse> getCreditCardByIdFallback(String id, CallNotPermittedException e) {
+        return Mono.error(new BadRequestException(CREDIT_SERVICE_UNAVAILABLE_MESSAGE));
+    }
+
+    private Mono<CreditCardResponse> getCreditCardByIdFallback(String id, WebClientException e) {
+        return Mono.error(new BadRequestException(CREDIT_SERVICE_UNAVAILABLE_MESSAGE));
+    }
+
 }

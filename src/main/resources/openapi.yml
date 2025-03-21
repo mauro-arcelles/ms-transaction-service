@@ -493,6 +493,12 @@ components:
         id:
           type: string
 
+    UpdateYankiWalletRequest:
+      type: object
+      properties:
+        balance:
+          type: number
+
     GetExchangeRequestByTransactionIdResponse:
       type: object
       properties:
@@ -737,3 +743,26 @@ components:
           type: string
         message:
           type: string
+
+    GetYankiWalletResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        documentNumber:
+          type: string
+        phoneNumber:
+          type: string
+        phoneImei:
+          type: string
+        email:
+          type: string
+        status:
+          type: string
+        creationDate:
+          type: string
+          format: date-time
+        userId:
+          type: string
+        balance:
+          type: number
