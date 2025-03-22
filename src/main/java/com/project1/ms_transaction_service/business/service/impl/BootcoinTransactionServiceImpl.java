@@ -107,25 +107,42 @@ public class BootcoinTransactionServiceImpl implements BootcoinTransactionServic
 
         log.info("Updating bootcoin wallets");
 
-        return Mono.zip(bootcoinService.updateBootcoinWallet(requestOwnerWallet.getId(), updateOwnerWalletRequest),
-                bootcoinService.updateBootcoinWallet(requestAccepterWallet.getId(), updateAccepterWalletRequest))
-            .doOnSuccess(__ -> {
-                log.info("Bootcoin wallets updated successfully");
+        return Mono.zip(
+                bootcoinService.updateBootcoinWallet(requestOwnerWallet.getId(), updateOwnerWalletRequest)
+                    .doOnSubscribe(__ -> log.info("Subscribing to update owner wallet"))
+                    .doOnSuccess(__ -> log.info("Owner wallet updated successfully"))
+                    .doOnError(e -> log.error("Error updating owner wallet", e)),
+                bootcoinService.updateBootcoinWallet(requestAccepterWallet.getId(), updateAccepterWalletRequest)
+                    .doOnSubscribe(__ -> log.info("Subscribing to update accepter wallet"))
+                    .doOnSuccess(__ -> log.info("Accepter wallet updated successfully"))
+                    .doOnError(e -> log.error("Error updating accepter wallet", e))
+            )
+            .doOnSubscribe(__ -> log.info("Subscribing to zip operation"))
+            .doOnSuccess(__ -> log.info("Zip operation completed successfully"))
+            .doOnError(e -> log.error("Error in zip operation", e))
+            .doOnSuccess(tuple -> {
+                log.info("Processing after successful wallet updates");
                 UpdateExchangeRequestRequest updateExchangeRequestRequest = new UpdateExchangeRequestRequest();
                 updateExchangeRequestRequest.status(ExchangeRequestStatus.APPROVED.toString());
                 updateExchangeRequestRequest.setMessage("Bootcoin wallets updated successfully");
 
                 bootcoinService.updateExchangeRequest(exchangeRequest.getId(), updateExchangeRequestRequest)
-                    .doOnError(t -> log.error("Error updating exchange request", t));
+                    .doOnSubscribe(__ -> log.info("Subscribing to update exchange request"))
+                    .doOnSuccess(e -> log.info("Exchange request updated successfully"))
+                    .doOnError(t -> log.error("Error updating exchange request", t))
+                    .subscribe();
             })
-            .doOnError(__ -> {
-                log.error("Bootcoin wallets update failed", __);
+            .doOnError(error -> {
+                log.error("Processing after wallet update failure", error);
                 UpdateExchangeRequestRequest updateExchangeRequestRequest = new UpdateExchangeRequestRequest();
                 updateExchangeRequestRequest.status(ExchangeRequestStatus.REJECTED.toString());
                 updateExchangeRequestRequest.setMessage("Bootcoin wallets update failed");
 
                 bootcoinService.updateExchangeRequest(exchangeRequest.getId(), updateExchangeRequestRequest)
-                    .doOnError(t -> log.error("Error updating exchange request", t));
+                    .doOnSubscribe(__ -> log.info("Subscribing to update exchange request (error case)"))
+                    .doOnSuccess(e -> log.info("Exchange request updated successfully (error case)"))
+                    .doOnError(t -> log.error("Error updating exchange request (error case)", t))
+                    .subscribe();
             });
     }
 }
